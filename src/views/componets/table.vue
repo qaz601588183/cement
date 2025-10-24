@@ -272,14 +272,21 @@ const currentDetailItem = ref<any>(null);
 
 // 当前处理的项目数据
 const currentItemData = ref<any>({
-    year: '',
-    journal: '',
-    cell_source: '',
-    differentiation_timeline: '',
-    stage_specific_compounds: '',
-    efficiency_assessment_metrics: '',
-    doi: '',
-    citation: '',
+    reportNumber: '',
+    reportType: '',
+    projectName: '',
+    testDate: '',
+    strength_grade: '',
+    actual_strength: 0,
+    cement_type: '',
+    cement_fineness: '',
+    water_cement_ratio: 0,
+    aggregate_info: '',
+    admixture: '',
+    curing_condition: '',
+    curing_age: '',
+    test_method: '',
+    conclusion: '',
 });
 
 // 训练状态
@@ -288,35 +295,35 @@ const trainingProgress = ref(0);
 const trainingStage = ref('');
 const estimatedTime = ref(30);
 
-// 训练阶段列表
+// 质量推演阶段列表
 const trainingStages = ref([
     {
-        title: '数据预处理',
-        description: '解析和清洗论文数据',
+        title: '数据解析',
+        description: '提取混凝土检测报告关键参数',
         active: false,
         completed: false,
     },
     {
-        title: '特征提取',
-        description: '提取关键分化参数和化合物信息',
+        title: '原材料分析',
+        description: '分析水泥、骨料等原材料质量指标',
         active: false,
         completed: false,
     },
     {
-        title: '模型构建',
-        description: '基于深度学习构建分化预测模型',
+        title: '配合比评估',
+        description: '评估水灰比、外加剂等配合比参数',
         active: false,
         completed: false,
     },
     {
-        title: '参数优化',
-        description: '自动调整和优化模型参数',
+        title: '养护条件评价',
+        description: '分析养护温度、湿度、龄期等因素',
         active: false,
         completed: false,
     },
     {
-        title: '验证测试',
-        description: '验证模型准确性和稳定性',
+        title: '强度推演',
+        description: '基于影响因素推演混凝土强度发展',
         active: false,
         completed: false,
     },

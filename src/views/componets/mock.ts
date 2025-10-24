@@ -17,6 +17,34 @@ export const mockData = [
             curing_age: '28天',
             test_method: 'GB/T 50107-2010 混凝土强度检验评定标准',
             conclusion: '合格',
+            // 影响因素分析数据
+            strength_factors: {
+                material_factors: {
+                    cement_strength_grade: 42.5,
+                    cement_fineness_value: 350,
+                    aggregate_quality_score: 85, // 骨料质量评分 0-100
+                    aggregate_mud_content: 0.8, // 含泥量 %
+                    aggregate_needle_flake: 6, // 针片状含量 %
+                },
+                mix_ratio_factors: {
+                    water_cement_ratio: 0.45,
+                    admixture_type: '聚羧酸高效减水剂',
+                    admixture_dosage: 1.2, // %
+                    sand_ratio: 38, // 砂率 %
+                },
+                curing_factors: {
+                    curing_temperature: 20, // °C
+                    curing_humidity: 95, // %
+                    curing_days: 28,
+                    curing_method: '标准养护',
+                },
+                strength_development: {
+                    day_3: 18.5,
+                    day_7: 25.2,
+                    day_14: 30.8,
+                    day_28: 35.2,
+                },
+            },
         },
     },
     {
