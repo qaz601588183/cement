@@ -216,23 +216,72 @@
                 </v-col>
             </v-row>
 
-            <!-- 可调参数面板 -->
+            <!-- 可调参数面板 - 7个关键参数 -->
             <v-card class="mb-4" elevation="2">
                 <v-card-title class="bg-gradient-primary">
                     <v-icon class="mr-2">mdi-tune-variant</v-icon>
-                    关键参数调整 - 实时推演
+                    7个关键参数调整 - 实时推演
                 </v-card-title>
                 <v-card-text class="pa-6">
+                    <!-- 参数说明 -->
+                    <v-alert type="info" variant="tonal" class="mb-4" dense>
+                        基于混凝土强度推演理论，以下7个参数对强度影响最为关键
+                    </v-alert>
+
                     <v-row>
-                        <!-- 水灰比调整 -->
+                        <!-- 关键参数1: 水泥用量 -->
                         <v-col cols="12" md="6">
-                            <v-card variant="outlined" class="pa-4">
-                                <div class="d-flex align-center mb-3">
-                                    <v-icon color="deep-orange" class="mr-2"
-                                        >mdi-water-percent</v-icon
-                                    >
-                                    <span class="text-subtitle-1 font-weight-bold"
-                                        >水灰比（最关键因素）</span
+                            <v-card variant="outlined" class="pa-4 param-card">
+                                <div class="d-flex align-center justify-space-between mb-3">
+                                    <div class="d-flex align-center">
+                                        <v-icon color="brown" class="mr-2"
+                                            >mdi-package-variant-closed</v-icon
+                                        >
+                                        <span class="text-subtitle-1 font-weight-bold"
+                                            >水泥用量</span
+                                        >
+                                    </div>
+                                    <v-chip size="x-small" color="brown" variant="flat">C</v-chip>
+                                </div>
+                                <div class="text-h5 text-center mb-2 font-weight-bold text-primary">
+                                    {{ editableParams.cement_content }} kg/m³
+                                </div>
+                                <v-slider
+                                    v-model="editableParams.cement_content"
+                                    :min="250"
+                                    :max="550"
+                                    :step="10"
+                                    color="brown"
+                                    track-color="grey-lighten-2"
+                                    thumb-label
+                                    @update:model-value="handleParameterChange"
+                                >
+                                    <template v-slot:prepend>
+                                        <v-chip size="x-small">250</v-chip>
+                                    </template>
+                                    <template v-slot:append>
+                                        <v-chip size="x-small">550</v-chip>
+                                    </template>
+                                </v-slider>
+                                <div class="text-caption text-grey text-center">
+                                    <v-icon size="x-small">mdi-lightbulb-outline</v-icon>
+                                    水泥用量直接影响强度，最优范围350-450kg/m³
+                                </div>
+                            </v-card>
+                        </v-col>
+
+                        <!-- 关键参数2: 水灰比 -->
+                        <v-col cols="12" md="6">
+                            <v-card variant="outlined" class="pa-4 param-card">
+                                <div class="d-flex align-center justify-space-between mb-3">
+                                    <div class="d-flex align-center">
+                                        <v-icon color="deep-orange" class="mr-2"
+                                            >mdi-water-percent</v-icon
+                                        >
+                                        <span class="text-subtitle-1 font-weight-bold">水灰比</span>
+                                    </div>
+                                    <v-chip size="x-small" color="deep-orange" variant="flat"
+                                        >W/C</v-chip
                                     >
                                 </div>
                                 <div class="text-h5 text-center mb-2 font-weight-bold text-primary">
@@ -262,167 +311,255 @@
                             </v-card>
                         </v-col>
 
-                        <!-- 水泥强度等级 -->
+                        <!-- 关键参数3: 高效减水剂掺量 -->
                         <v-col cols="12" md="6">
-                            <v-card variant="outlined" class="pa-4">
-                                <div class="d-flex align-center mb-3">
-                                    <v-icon color="indigo" class="mr-2">mdi-package-variant</v-icon>
-                                    <span class="text-subtitle-1 font-weight-bold"
-                                        >水泥强度等级</span
-                                    >
-                                </div>
-                                <v-radio-group
-                                    v-model="editableParams.cement_strength_grade"
-                                    inline
-                                    @update:model-value="handleParameterChange"
-                                >
-                                    <v-radio label="32.5级" :value="32.5" color="indigo"></v-radio>
-                                    <v-radio label="42.5级" :value="42.5" color="indigo"></v-radio>
-                                    <v-radio label="52.5级" :value="52.5" color="indigo"></v-radio>
-                                </v-radio-group>
-                                <div class="text-caption text-grey text-center">
-                                    <v-icon size="x-small">mdi-lightbulb-outline</v-icon>
-                                    等级越高，强度发展越好
-                                </div>
-                            </v-card>
-                        </v-col>
-
-                        <!-- 水泥细度 -->
-                        <v-col cols="12" md="6">
-                            <v-card variant="outlined" class="pa-4">
-                                <div class="d-flex align-center mb-3">
-                                    <v-icon color="purple" class="mr-2">mdi-grain</v-icon>
-                                    <span class="text-subtitle-1 font-weight-bold"
-                                        >水泥细度 (m²/kg)</span
-                                    >
+                            <v-card variant="outlined" class="pa-4 param-card">
+                                <div class="d-flex align-center justify-space-between mb-3">
+                                    <div class="d-flex align-center">
+                                        <v-icon color="purple" class="mr-2">mdi-flask</v-icon>
+                                        <span class="text-subtitle-1 font-weight-bold"
+                                            >高效减水剂掺量</span
+                                        >
+                                    </div>
+                                    <v-chip size="x-small" color="purple" variant="flat">R</v-chip>
                                 </div>
                                 <div class="text-h5 text-center mb-2 font-weight-bold text-primary">
-                                    {{ editableParams.cement_fineness }}
+                                    {{ editableParams.water_reducer_dosage }} %
                                 </div>
                                 <v-slider
-                                    v-model="editableParams.cement_fineness"
-                                    :min="300"
-                                    :max="450"
-                                    :step="10"
+                                    v-model="editableParams.water_reducer_dosage"
+                                    :min="0"
+                                    :max="3"
+                                    :step="0.1"
                                     color="purple"
+                                    track-color="grey-lighten-2"
                                     thumb-label
                                     @update:model-value="handleParameterChange"
                                 >
                                     <template v-slot:prepend>
-                                        <v-chip size="x-small">300</v-chip>
+                                        <v-chip size="x-small">0%</v-chip>
                                     </template>
                                     <template v-slot:append>
-                                        <v-chip size="x-small">450</v-chip>
+                                        <v-chip size="x-small">3%</v-chip>
                                     </template>
                                 </v-slider>
                                 <div class="text-caption text-grey text-center">
                                     <v-icon size="x-small">mdi-lightbulb-outline</v-icon>
-                                    细度越高，水化反应越充分（标准350）
+                                    最优掺量1.5-2.5%，可显著提高强度
                                 </div>
                             </v-card>
                         </v-col>
 
-                        <!-- 养护温度 -->
+                        <!-- 关键参数4: 养护温度×龄期（成熟度） -->
                         <v-col cols="12" md="6">
-                            <v-card variant="outlined" class="pa-4">
-                                <div class="d-flex align-center mb-3">
-                                    <v-icon color="orange" class="mr-2">mdi-thermometer</v-icon>
-                                    <span class="text-subtitle-1 font-weight-bold"
-                                        >养护温度 (°C)</span
+                            <v-card variant="outlined" class="pa-4 param-card">
+                                <div class="d-flex align-center justify-space-between mb-3">
+                                    <div class="d-flex align-center">
+                                        <v-icon color="orange" class="mr-2"
+                                            >mdi-chart-line-variant</v-icon
+                                        >
+                                        <span class="text-subtitle-1 font-weight-bold"
+                                            >养护成熟度</span
+                                        >
+                                    </div>
+                                    <v-chip size="x-small" color="orange" variant="flat"
+                                        >T×t={{
+                                            editableParams.curing_temperature *
+                                            editableParams.curing_days
+                                        }}</v-chip
                                     >
                                 </div>
-                                <div class="text-h5 text-center mb-2 font-weight-bold text-primary">
-                                    {{ editableParams.curing_temperature }}°C
-                                </div>
-                                <v-slider
-                                    v-model="editableParams.curing_temperature"
-                                    :min="5"
-                                    :max="40"
-                                    :step="1"
-                                    color="orange"
-                                    thumb-label
-                                    @update:model-value="handleParameterChange"
-                                >
-                                    <template v-slot:prepend>
-                                        <v-chip size="x-small" color="blue">5°C</v-chip>
-                                    </template>
-                                    <template v-slot:append>
-                                        <v-chip size="x-small" color="red">40°C</v-chip>
-                                    </template>
-                                </v-slider>
+                                <v-row dense>
+                                    <v-col cols="6">
+                                        <div class="text-body-2 text-center mb-1">
+                                            温度: {{ editableParams.curing_temperature }}°C
+                                        </div>
+                                        <v-slider
+                                            v-model="editableParams.curing_temperature"
+                                            :min="5"
+                                            :max="40"
+                                            :step="1"
+                                            color="orange"
+                                            track-color="grey-lighten-2"
+                                            thumb-label="always"
+                                            @update:model-value="handleParameterChange"
+                                        ></v-slider>
+                                    </v-col>
+                                    <v-col cols="6">
+                                        <div class="text-body-2 text-center mb-1">
+                                            龄期: {{ editableParams.curing_days }}天
+                                        </div>
+                                        <v-slider
+                                            v-model="editableParams.curing_days"
+                                            :min="1"
+                                            :max="90"
+                                            :step="1"
+                                            color="teal"
+                                            track-color="grey-lighten-2"
+                                            thumb-label="always"
+                                            @update:model-value="handleParameterChange"
+                                        ></v-slider>
+                                    </v-col>
+                                </v-row>
                                 <div class="text-caption text-grey text-center">
                                     <v-icon size="x-small">mdi-lightbulb-outline</v-icon>
-                                    最佳温度18-22°C
+                                    标准成熟度: 20°C×28天=560，成熟度越高强度越高
                                 </div>
                             </v-card>
                         </v-col>
 
-                        <!-- 养护湿度 -->
+                        <!-- 关键参数5: 粉煤灰/矿渣掺量 -->
                         <v-col cols="12" md="6">
-                            <v-card variant="outlined" class="pa-4">
-                                <div class="d-flex align-center mb-3">
-                                    <v-icon color="blue" class="mr-2">mdi-water</v-icon>
-                                    <span class="text-subtitle-1 font-weight-bold"
-                                        >养护湿度 (%)</span
+                            <v-card variant="outlined" class="pa-4 param-card">
+                                <div class="d-flex align-center justify-space-between mb-3">
+                                    <div class="d-flex align-center">
+                                        <v-icon color="grey-darken-1" class="mr-2"
+                                            >mdi-cube-outline</v-icon
+                                        >
+                                        <span class="text-subtitle-1 font-weight-bold"
+                                            >矿物掺合料</span
+                                        >
+                                    </div>
+                                    <v-chip size="x-small" color="grey-darken-1" variant="flat"
+                                        >FA+S={{
+                                            editableParams.fly_ash_dosage +
+                                            editableParams.slag_dosage
+                                        }}%</v-chip
                                     >
                                 </div>
-                                <div class="text-h5 text-center mb-2 font-weight-bold text-primary">
-                                    {{ editableParams.curing_humidity }}%
-                                </div>
-                                <v-slider
-                                    v-model="editableParams.curing_humidity"
-                                    :min="50"
-                                    :max="100"
-                                    :step="5"
-                                    color="blue"
-                                    thumb-label
-                                    @update:model-value="handleParameterChange"
-                                >
-                                    <template v-slot:prepend>
-                                        <v-chip size="x-small">50%</v-chip>
-                                    </template>
-                                    <template v-slot:append>
-                                        <v-chip size="x-small" color="success">100%</v-chip>
-                                    </template>
-                                </v-slider>
+                                <v-row dense>
+                                    <v-col cols="6">
+                                        <div class="text-body-2 text-center mb-1">
+                                            粉煤灰: {{ editableParams.fly_ash_dosage }}%
+                                        </div>
+                                        <v-slider
+                                            v-model="editableParams.fly_ash_dosage"
+                                            :min="0"
+                                            :max="40"
+                                            :step="1"
+                                            color="grey-darken-1"
+                                            track-color="grey-lighten-2"
+                                            thumb-label="always"
+                                            @update:model-value="handleParameterChange"
+                                        ></v-slider>
+                                    </v-col>
+                                    <v-col cols="6">
+                                        <div class="text-body-2 text-center mb-1">
+                                            矿渣: {{ editableParams.slag_dosage }}%
+                                        </div>
+                                        <v-slider
+                                            v-model="editableParams.slag_dosage"
+                                            :min="0"
+                                            :max="40"
+                                            :step="1"
+                                            color="blue-grey"
+                                            track-color="grey-lighten-2"
+                                            thumb-label="always"
+                                            @update:model-value="handleParameterChange"
+                                        ></v-slider>
+                                    </v-col>
+                                </v-row>
                                 <div class="text-caption text-grey text-center">
                                     <v-icon size="x-small">mdi-lightbulb-outline</v-icon>
-                                    标准养护要求≥95%
+                                    总掺量15-35%最优，可改善后期强度
                                 </div>
                             </v-card>
                         </v-col>
 
-                        <!-- 养护龄期 -->
+                        <!-- 关键参数6: 粗骨料用量 -->
                         <v-col cols="12" md="6">
-                            <v-card variant="outlined" class="pa-4">
-                                <div class="d-flex align-center mb-3">
-                                    <v-icon color="teal" class="mr-2">mdi-calendar-clock</v-icon>
-                                    <span class="text-subtitle-1 font-weight-bold"
-                                        >养护龄期 (天)</span
+                            <v-card variant="outlined" class="pa-4 param-card">
+                                <div class="d-flex align-center justify-space-between mb-3">
+                                    <div class="d-flex align-center">
+                                        <v-icon color="blue-grey-darken-2" class="mr-2"
+                                            >mdi-texture-box</v-icon
+                                        >
+                                        <span class="text-subtitle-1 font-weight-bold"
+                                            >粗骨料用量</span
+                                        >
+                                    </div>
+                                    <v-chip size="x-small" color="blue-grey-darken-2" variant="flat"
+                                        >CA</v-chip
                                     >
                                 </div>
                                 <div class="text-h5 text-center mb-2 font-weight-bold text-primary">
-                                    {{ editableParams.curing_days }} 天
+                                    {{ editableParams.coarse_aggregate_content }} kg/m³
                                 </div>
                                 <v-slider
-                                    v-model="editableParams.curing_days"
-                                    :min="1"
-                                    :max="90"
-                                    :step="1"
-                                    color="teal"
+                                    v-model="editableParams.coarse_aggregate_content"
+                                    :min="900"
+                                    :max="1300"
+                                    :step="10"
+                                    color="blue-grey-darken-2"
+                                    track-color="grey-lighten-2"
                                     thumb-label
                                     @update:model-value="handleParameterChange"
                                 >
                                     <template v-slot:prepend>
-                                        <v-chip size="x-small">1天</v-chip>
+                                        <v-chip size="x-small">900</v-chip>
                                     </template>
                                     <template v-slot:append>
-                                        <v-chip size="x-small">90天</v-chip>
+                                        <v-chip size="x-small">1300</v-chip>
                                     </template>
                                 </v-slider>
                                 <div class="text-caption text-grey text-center">
                                     <v-icon size="x-small">mdi-lightbulb-outline</v-icon>
-                                    标准龄期为28天
+                                    最优范围1000-1200kg/m³
+                                </div>
+                            </v-card>
+                        </v-col>
+
+                        <!-- 关键参数7: 细骨料用量 & 砂率 -->
+                        <v-col cols="12" md="6">
+                            <v-card variant="outlined" class="pa-4 param-card">
+                                <div class="d-flex align-center justify-space-between mb-3">
+                                    <div class="d-flex align-center">
+                                        <v-icon color="amber-darken-2" class="mr-2"
+                                            >mdi-grain</v-icon
+                                        >
+                                        <span class="text-subtitle-1 font-weight-bold"
+                                            >细骨料&砂率</span
+                                        >
+                                    </div>
+                                    <v-chip size="x-small" color="amber-darken-2" variant="flat"
+                                        >SA & SR</v-chip
+                                    >
+                                </div>
+                                <v-row dense>
+                                    <v-col cols="6">
+                                        <div class="text-body-2 text-center mb-1">
+                                            细骨料: {{ editableParams.fine_aggregate_content }}kg/m³
+                                        </div>
+                                        <v-slider
+                                            v-model="editableParams.fine_aggregate_content"
+                                            :min="500"
+                                            :max="800"
+                                            :step="10"
+                                            color="amber-darken-2"
+                                            track-color="grey-lighten-2"
+                                            thumb-label="always"
+                                            @update:model-value="handleParameterChange"
+                                        ></v-slider>
+                                    </v-col>
+                                    <v-col cols="6">
+                                        <div class="text-body-2 text-center mb-1">
+                                            砂率: {{ editableParams.sand_ratio }}%
+                                        </div>
+                                        <v-slider
+                                            v-model="editableParams.sand_ratio"
+                                            :min="30"
+                                            :max="45"
+                                            :step="1"
+                                            color="amber-darken-3"
+                                            track-color="grey-lighten-2"
+                                            thumb-label="always"
+                                            @update:model-value="handleParameterChange"
+                                        ></v-slider>
+                                    </v-col>
+                                </v-row>
+                                <div class="text-caption text-grey text-center">
+                                    <v-icon size="x-small">mdi-lightbulb-outline</v-icon>
+                                    砂率35-40%最优，影响工作性和强度
                                 </div>
                             </v-card>
                         </v-col>
@@ -689,19 +826,34 @@ const emit = defineEmits<{
 // 原始强度
 const originalStrength = ref(0);
 
-// 可编辑的参数
+// 可编辑的参数（7个关键参数）
 const editableParams = ref<ConcreteParameters>({
+    // 关键参数1: 水泥用量 (kg/m³)
+    cement_content: 380,
+    // 关键参数2: 水灰比
     water_cement_ratio: 0.45,
+    // 关键参数3: 高效减水剂掺量 (%)
+    water_reducer_dosage: 1.2,
+    // 关键参数4: 养护温度×龄期（成熟度）
+    curing_temperature: 20,
+    curing_days: 28,
+    // 关键参数5: 粉煤灰/矿渣掺量 (%)
+    fly_ash_dosage: 15,
+    slag_dosage: 10,
+    // 关键参数6: 粗骨料用量 (kg/m³)
+    coarse_aggregate_content: 1100,
+    // 关键参数7: 细骨料用量 & 砂率
+    fine_aggregate_content: 650,
+    sand_ratio: 37,
+    // 辅助参数（保持兼容性）
     cement_strength_grade: 42.5,
     cement_fineness: 350,
+    curing_humidity: 95,
+    curing_method: '标准养护',
     aggregate_mud_content: 0.8,
     aggregate_quality_score: 85,
     admixture_type: '聚羧酸高效减水剂',
     admixture_dosage: 1.2,
-    curing_temperature: 20,
-    curing_humidity: 95,
-    curing_days: 28,
-    curing_method: '标准养护',
 });
 
 // 原始参数备份（用于重置）
@@ -749,9 +901,12 @@ const initializeParams = () => {
     // 从formData中提取参数
     originalStrength.value = props.formData.actual_strength || 0;
 
+    // 优先从 strength_factors 中提取关键参数
+    const factors = props.formData.strength_factors || {};
+
     // 解析水泥强度等级
     const cementType = props.formData.cement_type || '';
-    let cementGrade = 42.5;
+    let cementGrade = factors.cement_strength_grade || 42.5;
     if (cementType.includes('52.5')) {
         cementGrade = 52.5;
     } else if (cementType.includes('32.5')) {
@@ -760,52 +915,58 @@ const initializeParams = () => {
 
     // 解析水泥细度
     const finenesMatch = props.formData.cement_fineness?.match(/(\d+)\s*m/);
-    const fineness = finenesMatch ? parseInt(finenesMatch[1]) : 350;
-
-    // 解析骨料含泥量
-    const mudContentMatch = props.formData.aggregate_info?.match(/含泥量([\d.]+)%/);
-    const mudContent = mudContentMatch ? parseFloat(mudContentMatch[1]) : 0.8;
+    const fineness =
+        factors.cement_fineness_value || (finenesMatch ? parseInt(finenesMatch[1]) : 350);
 
     // 解析养护温度
-    let curingTemp = 20;
+    let curingTemp = factors.curing_temperature || 20;
     const tempMatch = props.formData.curing_condition?.match(/温度\s*([\d-]+)/);
-    if (tempMatch) {
+    if (tempMatch && !factors.curing_temperature) {
         const temps = tempMatch[1].split('-');
         curingTemp = parseInt(temps[0]);
     }
 
     // 解析养护湿度
-    let curingHumidity = 95;
+    let curingHumidity = factors.curing_humidity || 95;
     const humidityMatch = props.formData.curing_condition?.match(/湿度\s*[≥>=]*\s*(\d+)/);
-    if (humidityMatch) {
+    if (humidityMatch && !factors.curing_humidity) {
         curingHumidity = parseInt(humidityMatch[1]);
     }
 
     // 解析养护龄期
     const ageMatch = props.formData.curing_age?.match(/(\d+)\s*天/);
-    const curingDays = ageMatch ? parseInt(ageMatch[1]) : 28;
+    const curingDays = factors.curing_days || (ageMatch ? parseInt(ageMatch[1]) : 28);
 
     // 确定养护方式
-    const curingMethod = props.formData.curing_condition || '标准养护';
+    const curingMethod = factors.curing_method || props.formData.curing_condition || '标准养护';
 
     // 解析外加剂类型
     const admixtureType = props.formData.admixture || '聚羧酸高效减水剂';
     const admixtureMatch = props.formData.admixture?.match(/([\d.]+)%/);
     const admixtureDosage = admixtureMatch ? parseFloat(admixtureMatch[1]) : 1.2;
 
-    // 设置参数
+    // 设置参数（包含7个关键参数）
     editableParams.value = {
-        water_cement_ratio: props.formData.water_cement_ratio || 0.45,
+        // 关键参数
+        cement_content: factors.cement_content || 380,
+        water_cement_ratio: factors.water_cement_ratio || props.formData.water_cement_ratio || 0.45,
+        water_reducer_dosage: factors.water_reducer_dosage || 1.2,
+        curing_temperature: curingTemp,
+        curing_days: curingDays,
+        fly_ash_dosage: factors.fly_ash_dosage || 15,
+        slag_dosage: factors.slag_dosage || 10,
+        coarse_aggregate_content: factors.coarse_aggregate_content || 1100,
+        fine_aggregate_content: factors.fine_aggregate_content || 650,
+        sand_ratio: factors.sand_ratio || 37,
+        // 辅助参数
         cement_strength_grade: cementGrade,
         cement_fineness: fineness,
-        aggregate_mud_content: mudContent,
+        curing_humidity: curingHumidity,
+        curing_method: curingMethod,
+        aggregate_mud_content: 0.8,
         aggregate_quality_score: 85,
         admixture_type: admixtureType,
         admixture_dosage: admixtureDosage,
-        curing_temperature: curingTemp,
-        curing_humidity: curingHumidity,
-        curing_days: curingDays,
-        curing_method: curingMethod,
     };
 
     // 备份原始参数
@@ -832,7 +993,8 @@ const handleParameterChange = () => {
 };
 
 // 获取水泥等级字符串
-const getCementGradeString = (grade: number): string => {
+const getCementGradeString = (grade: number | undefined): string => {
+    if (!grade) return 'P.O 42.5';
     return `P.O ${grade}`;
 };
 
@@ -843,34 +1005,52 @@ const applyPreset = (type: 'optimal' | 'standard' | 'reset') => {
             // 最优方案
             editableParams.value = {
                 ...editableParams.value,
+                // 关键参数优化
+                cement_content: 420,
                 water_cement_ratio: 0.35,
+                water_reducer_dosage: 2.0,
+                curing_temperature: 20,
+                curing_days: 28,
+                fly_ash_dosage: 18,
+                slag_dosage: 12,
+                coarse_aggregate_content: 1150,
+                fine_aggregate_content: 680,
+                sand_ratio: 38,
+                // 辅助参数
                 cement_strength_grade: 52.5,
                 cement_fineness: 400,
+                curing_humidity: 98,
+                curing_method: '标准养护',
                 aggregate_mud_content: 0.3,
                 aggregate_quality_score: 95,
                 admixture_type: '聚羧酸高效减水剂',
                 admixture_dosage: 2.0,
-                curing_temperature: 20,
-                curing_humidity: 98,
-                curing_days: 28,
-                curing_method: '标准养护',
             };
             break;
         case 'standard':
             // 标准方案
             editableParams.value = {
                 ...editableParams.value,
+                // 关键参数标准
+                cement_content: 380,
                 water_cement_ratio: 0.45,
+                water_reducer_dosage: 1.5,
+                curing_temperature: 20,
+                curing_days: 28,
+                fly_ash_dosage: 15,
+                slag_dosage: 10,
+                coarse_aggregate_content: 1100,
+                fine_aggregate_content: 650,
+                sand_ratio: 37,
+                // 辅助参数
                 cement_strength_grade: 42.5,
                 cement_fineness: 350,
+                curing_humidity: 95,
+                curing_method: '标准养护',
                 aggregate_mud_content: 0.7,
                 aggregate_quality_score: 85,
                 admixture_type: '聚羧酸减水剂',
                 admixture_dosage: 1.5,
-                curing_temperature: 20,
-                curing_humidity: 95,
-                curing_days: 28,
-                curing_method: '标准养护',
             };
             break;
         case 'reset':
@@ -882,7 +1062,8 @@ const applyPreset = (type: 'optimal' | 'standard' | 'reset') => {
 };
 
 // 获取影响程度颜色
-const getInfluenceColor = (influence: number): string => {
+const getInfluenceColor = (influence: number | undefined): string => {
+    if (!influence) return 'grey';
     if (influence >= 90) return 'success';
     if (influence >= 80) return 'primary';
     if (influence >= 70) return 'info';
@@ -1017,6 +1198,18 @@ watch(
     &:hover {
         border-color: rgba(var(--v-theme-primary), 0.5);
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+}
+
+// 参数卡片样式
+.param-card {
+    transition: all 0.3s ease;
+    min-height: 180px;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+        border-color: rgba(var(--v-theme-primary), 0.4) !important;
     }
 }
 </style>

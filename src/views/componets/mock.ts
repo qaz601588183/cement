@@ -17,27 +17,31 @@ export const mockData = [
             curing_age: '28天',
             test_method: 'GB/T 50107-2010 混凝土强度检验评定标准',
             conclusion: '合格',
-            // 影响因素分析数据
+            // 影响因素分析数据（关键参数）
             strength_factors: {
-                material_factors: {
-                    cement_strength_grade: 42.5,
-                    cement_fineness_value: 350,
-                    aggregate_quality_score: 85, // 骨料质量评分 0-100
-                    aggregate_mud_content: 0.8, // 含泥量 %
-                    aggregate_needle_flake: 6, // 针片状含量 %
-                },
-                mix_ratio_factors: {
-                    water_cement_ratio: 0.45,
-                    admixture_type: '聚羧酸高效减水剂',
-                    admixture_dosage: 1.2, // %
-                    sand_ratio: 38, // 砂率 %
-                },
-                curing_factors: {
-                    curing_temperature: 20, // °C
-                    curing_humidity: 95, // %
-                    curing_days: 28,
-                    curing_method: '标准养护',
-                },
+                // 关键参数1: 水泥用量 (kg/m³)
+                cement_content: 380,
+                // 关键参数2: 水灰比
+                water_cement_ratio: 0.45,
+                // 关键参数3: 高效减水剂掺量 (%)
+                water_reducer_dosage: 1.2,
+                // 关键参数4: 养护温度×龄期（成熟度）
+                curing_temperature: 20, // °C
+                curing_days: 28, // 天
+                curing_maturity: 560, // 成熟度 = 温度 × 龄期
+                // 关键参数5: 粉煤灰/矿渣掺量 (%)
+                fly_ash_dosage: 15, // 粉煤灰掺量
+                slag_dosage: 10, // 矿渣掺量
+                // 关键参数6: 粗骨料用量 (kg/m³)
+                coarse_aggregate_content: 1100,
+                // 关键参数7: 细骨料用量 & 砂率
+                fine_aggregate_content: 650, // 细骨料用量 (kg/m³)
+                sand_ratio: 37, // 砂率 (%)
+                // 其他参数
+                cement_strength_grade: 42.5,
+                cement_fineness_value: 350,
+                curing_humidity: 95,
+                curing_method: '标准养护',
                 strength_development: {
                     day_3: 18.5,
                     day_7: 25.2,
@@ -65,6 +69,29 @@ export const mockData = [
             curing_age: '28天',
             test_method: 'GB/T 50081-2019 混凝土物理力学性能试验方法标准',
             conclusion: '合格，抗压强度满足设计要求',
+            strength_factors: {
+                cement_content: 400,
+                water_cement_ratio: 0.4,
+                water_reducer_dosage: 1.5,
+                curing_temperature: 20,
+                curing_days: 28,
+                curing_maturity: 560,
+                fly_ash_dosage: 12,
+                slag_dosage: 8,
+                coarse_aggregate_content: 1120,
+                fine_aggregate_content: 660,
+                sand_ratio: 37,
+                cement_strength_grade: 42.5,
+                cement_fineness_value: 380,
+                curing_humidity: 95,
+                curing_method: '标准养护',
+                strength_development: {
+                    day_3: 20.5,
+                    day_7: 27.8,
+                    day_14: 33.2,
+                    day_28: 38.5,
+                },
+            },
         },
     },
     {
@@ -85,6 +112,29 @@ export const mockData = [
             curing_age: '28天',
             test_method: 'JTG 3420-2020 公路工程水泥及水泥混凝土试验规程',
             conclusion: '优良，强度超过设计值10%以上',
+            strength_factors: {
+                cement_content: 410,
+                water_cement_ratio: 0.38,
+                water_reducer_dosage: 1.8,
+                curing_temperature: 20,
+                curing_days: 28,
+                curing_maturity: 560,
+                fly_ash_dosage: 14,
+                slag_dosage: 10,
+                coarse_aggregate_content: 1150,
+                fine_aggregate_content: 670,
+                sand_ratio: 37,
+                cement_strength_grade: 42.5,
+                cement_fineness_value: 360,
+                curing_humidity: 90,
+                curing_method: '现场覆盖养护',
+                strength_development: {
+                    day_3: 22.5,
+                    day_7: 31.0,
+                    day_14: 38.2,
+                    day_28: 44.8,
+                },
+            },
         },
     },
     {
@@ -105,6 +155,29 @@ export const mockData = [
             curing_age: '28天',
             test_method: 'GB/T 50081-2019',
             conclusion: '合格，高强混凝土质量优良',
+            strength_factors: {
+                cement_content: 450,
+                water_cement_ratio: 0.32,
+                water_reducer_dosage: 2.0,
+                curing_temperature: 20,
+                curing_days: 28,
+                curing_maturity: 560,
+                fly_ash_dosage: 18,
+                slag_dosage: 12,
+                coarse_aggregate_content: 1180,
+                fine_aggregate_content: 690,
+                sand_ratio: 37,
+                cement_strength_grade: 52.5,
+                cement_fineness_value: 400,
+                curing_humidity: 98,
+                curing_method: '标准养护',
+                strength_development: {
+                    day_3: 28.5,
+                    day_7: 42.0,
+                    day_14: 50.2,
+                    day_28: 55.6,
+                },
+            },
         },
     },
     {
@@ -125,6 +198,29 @@ export const mockData = [
             curing_age: '28天',
             test_method: 'GB/T 50081-2019、GB/T 50082-2009 抗渗性能试验',
             conclusion: '抗压强度合格，抗渗等级达到P6',
+            strength_factors: {
+                cement_content: 370,
+                water_cement_ratio: 0.48,
+                water_reducer_dosage: 1.0,
+                curing_temperature: 18,
+                curing_days: 28,
+                curing_maturity: 504,
+                fly_ash_dosage: 15,
+                slag_dosage: 10,
+                coarse_aggregate_content: 1100,
+                fine_aggregate_content: 650,
+                sand_ratio: 37,
+                cement_strength_grade: 42.5,
+                cement_fineness_value: 360,
+                curing_humidity: 88,
+                curing_method: '洞内自然养护',
+                strength_development: {
+                    day_3: 18.4,
+                    day_7: 25.1,
+                    day_14: 30.6,
+                    day_28: 34.8,
+                },
+            },
         },
     },
     {
