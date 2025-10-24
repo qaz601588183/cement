@@ -656,13 +656,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue';
 import {
-    calculateConcreteStrength,
     analyzeFactorInfluence,
+    calculateConcreteStrength,
     type ConcreteParameters,
     type FactorInfluence,
 } from '@/utils/concreteStrengthModel';
+import { computed, onMounted, ref, watch } from 'vue';
 
 const props = defineProps<{
     training: boolean;

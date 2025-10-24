@@ -291,13 +291,13 @@
 </template>
 
 <script setup lang="ts">
-import * as echarts from 'echarts';
-import { nextTick, onMounted, watch, computed } from 'vue';
 import {
     calculateConcreteStrength,
     calculateStrengthDevelopment,
     type ConcreteParameters,
 } from '@/utils/concreteStrengthModel';
+import * as echarts from 'echarts';
+import { computed, nextTick, onMounted, watch } from 'vue';
 
 const props = defineProps<{
     data: any;
