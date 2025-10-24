@@ -42,8 +42,18 @@
                         <div class="conclusion-text">
                             <p>
                                 <strong>本报告数据点：</strong>水灰比
-                                {{ data.water_cement_ratio }}，实测强度
-                                {{ data.actual_strength }} MPa
+                                {{ data.water_cement_ratio }}，{{
+                                    data.predicted_strength ? '推演' : '实测'
+                                }}强度 {{ displayStrength }} MPa
+                                <v-chip
+                                    v-if="data.predicted_strength"
+                                    size="x-small"
+                                    color="success"
+                                    class="ml-2"
+                                >
+                                    <v-icon size="x-small" class="mr-1">mdi-brain</v-icon>
+                                    AI推演
+                                </v-chip>
                             </p>
                             <p>
                                 <strong>理论分析：</strong
@@ -84,12 +94,13 @@
                         <div class="conclusion-text">
                             <p><strong>养护条件：</strong>{{ data.curing_condition }}</p>
                             <p>
-                                <strong>强度发展：</strong>28天实测强度
-                                {{ data.actual_strength }} MPa，达到设计强度
+                                <strong>强度发展：</strong>28天{{
+                                    data.predicted_strength ? '推演' : '实测'
+                                }}强度 {{ displayStrength }} MPa，达到设计强度
                                 {{ getDesignStrength(data.strength_grade) }} MPa 的
                                 {{
                                     getStrengthPercentage(
-                                        data.actual_strength,
+                                        displayStrength,
                                         getDesignStrength(data.strength_grade)
                                     )
                                 }}%
@@ -201,12 +212,22 @@
                                     </span>
                                 </div>
                                 <div class="summary-item highlight">
-                                    <span class="label">实测强度：</span>
+                                    <span class="label">{{
+                                        data.predicted_strength ? '推演强度：' : '实测强度：'
+                                    }}</span>
                                     <span class="value">
                                         <span class="text-h6 text-success font-weight-bold">{{
-                                            data.actual_strength
+                                            displayStrength
                                         }}</span>
                                         MPa
+                                        <v-chip
+                                            v-if="data.predicted_strength"
+                                            size="x-small"
+                                            color="success"
+                                            class="ml-2"
+                                        >
+                                            AI推演
+                                        </v-chip>
                                     </span>
                                 </div>
                                 <div class="summary-item highlight">
@@ -215,7 +236,7 @@
                                         <span
                                             :class="
                                                 getStrengthPercentage(
-                                                    data.actual_strength,
+                                                    displayStrength,
                                                     getDesignStrength(data.strength_grade)
                                                 ) >= 100
                                                     ? 'text-success'
@@ -224,7 +245,7 @@
                                         >
                                             {{
                                                 getStrengthPercentage(
-                                                    data.actual_strength,
+                                                    displayStrength,
                                                     getDesignStrength(data.strength_grade)
                                                 )
                                             }}%
@@ -271,7 +292,12 @@
 
 <script setup lang="ts">
 import * as echarts from 'echarts';
-import { nextTick, onMounted, watch } from 'vue';
+import { nextTick, onMounted, watch, computed } from 'vue';
+import {
+    calculateConcreteStrength,
+    calculateStrengthDevelopment,
+    type ConcreteParameters,
+} from '@/utils/concreteStrengthModel';
 
 const props = defineProps<{
     data: any;
@@ -281,6 +307,16 @@ const emit = defineEmits<{
     back: [];
     export: [];
 }>();
+
+// 获取推演参数（如果存在）
+const concreteParams = computed<ConcreteParameters | null>(() => {
+    return props.data.__concreteParams || null;
+});
+
+// 使用推演强度或实测强度
+const displayStrength = computed(() => {
+    return props.data.predicted_strength || props.data.actual_strength;
+});
 
 // 获取设计强度数值
 const getDesignStrength = (strengthGrade: string): number => {
@@ -309,13 +345,24 @@ const initWaterCementChart = () => {
 
     const myChart = echarts.init(chartDom);
 
-    // 理论曲线数据（基于鲍罗米公式）
+    // 理论曲线数据（基于鲍罗米公式或AI模型）
     const waterCementRatios = [0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6];
     const designStrength = getDesignStrength(props.data.strength_grade);
-    const theoreticalStrengths = waterCementRatios.map((ratio) => {
-        // 简化的鲍罗米公式: fc = A * fce / (1 + B * W/C)
-        return Math.round((designStrength * 1.5) / (1 + 2.5 * ratio));
-    });
+
+    let theoreticalStrengths: number[];
+
+    // 如果有推演参数，使用AI模型计算
+    if (concreteParams.value) {
+        theoreticalStrengths = waterCementRatios.map((ratio) => {
+            const params = { ...concreteParams.value!, water_cement_ratio: ratio };
+            return calculateConcreteStrength(params);
+        });
+    } else {
+        // 否则使用简化的鲍罗米公式
+        theoreticalStrengths = waterCementRatios.map((ratio) => {
+            return Math.round((designStrength * 1.5) / (1 + 2.5 * ratio));
+        });
+    }
 
     const option = {
         title: {
@@ -371,14 +418,16 @@ const initWaterCementChart = () => {
             {
                 name: '本报告实测点',
                 type: 'scatter',
-                data: [[props.data.water_cement_ratio, props.data.actual_strength]],
+                data: [[props.data.water_cement_ratio, displayStrength.value]],
                 symbolSize: 20,
                 itemStyle: {
                     color: '#ee6666',
                 },
                 label: {
                     show: true,
-                    formatter: `实测: ${props.data.actual_strength} MPa\nW/C: ${props.data.water_cement_ratio}`,
+                    formatter: concreteParams.value
+                        ? `推演: ${displayStrength.value} MPa\nW/C: ${props.data.water_cement_ratio}`
+                        : `实测: ${displayStrength.value} MPa\nW/C: ${props.data.water_cement_ratio}`,
                     position: 'top',
                     color: '#ee6666',
                     fontWeight: 'bold',
@@ -411,13 +460,25 @@ const initCuringChart = () => {
 
     const myChart = echarts.init(chartDom);
     const designStrength = getDesignStrength(props.data.strength_grade);
-    const actualStrength = props.data.actual_strength;
 
-    // 标准养护下的强度发展曲线（经验公式）
+    // 标准养护下的强度发展曲线
     const days = [1, 3, 7, 14, 28];
-    const standardCurve = days.map((day) => {
-        return Math.round((actualStrength * Math.log(day + 1)) / Math.log(29));
-    });
+    let standardCurve: number[];
+
+    // 如果有推演参数，使用AI模型计算强度发展曲线
+    if (concreteParams.value) {
+        const strengthDevelopment = calculateStrengthDevelopment(
+            concreteParams.value,
+            displayStrength.value
+        );
+        standardCurve = strengthDevelopment.map((item) => item.strength);
+    } else {
+        // 否则使用经验公式
+        const actualStrength = props.data.actual_strength;
+        standardCurve = days.map((day) => {
+            return Math.round((actualStrength * Math.log(day + 1)) / Math.log(29));
+        });
+    }
 
     const option = {
         title: {
@@ -675,9 +736,13 @@ const getOptimizationAdvice = (data: any): string => {
 
 const getFinalConclusion = (data: any): string => {
     const designStrength = getDesignStrength(data.strength_grade);
-    const percentage = getStrengthPercentage(data.actual_strength, designStrength);
+    const strength = displayStrength.value;
+    const percentage = getStrengthPercentage(strength, designStrength);
+    const isPredicted = !!data.predicted_strength;
 
-    let conclusion = `经检测，${data.projectName}混凝土试件的28天抗压强度为${data.actual_strength} MPa，`;
+    let conclusion = isPredicted
+        ? `经AI智能推演，${data.projectName}混凝土的优化后28天抗压强度预测为${strength} MPa，`
+        : `经检测，${data.projectName}混凝土试件的28天抗压强度为${strength} MPa，`;
 
     if (percentage >= 120) {
         conclusion += `超过设计强度${percentage - 100}%，强度储备充足，质量优秀。`;
@@ -687,6 +752,14 @@ const getFinalConclusion = (data: any): string => {
         conclusion += `满足设计强度${data.strength_grade}的要求，质量合格。`;
     } else {
         conclusion += `略低于设计强度要求，建议加强养护并进行配合比优化。`;
+    }
+
+    if (isPredicted && data.actual_strength) {
+        const improvement = strength - data.actual_strength;
+        const improvementPercent = ((improvement / data.actual_strength) * 100).toFixed(1);
+        if (improvement > 0) {
+            conclusion += `\n\n通过参数优化，相比原始实测强度${data.actual_strength} MPa，预测可提升${improvement.toFixed(1)} MPa（+${improvementPercent}%）。`;
+        }
     }
 
     conclusion += `\n\n关键影响因素分析表明：水灰比${data.water_cement_ratio}（${getWaterCementRatioLevel(data.water_cement_ratio)}），`;
