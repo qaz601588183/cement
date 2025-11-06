@@ -32,6 +32,16 @@ const router = createRouter({
             },
             children: [
                 {
+                    path: 'detection',
+                    name: 'detection',
+                    meta: {
+                        title: '检测页面',
+                        icon: 'mdi-table',
+                        visible: true,
+                    },
+                    component: () => import('@/views/componets/detection.vue'),
+                },
+                {
                     path: 'table',
                     name: '抓取页面',
                     meta: {
