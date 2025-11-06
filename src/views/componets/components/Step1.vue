@@ -142,14 +142,14 @@
                             <v-card variant="outlined" class="pa-4 param-card">
                                 <div class="d-flex align-center justify-space-between mb-3">
                                     <div class="d-flex align-center">
-                                        <v-icon color="brown" class="mr-2"
+                                        <v-icon color="primary" class="mr-2"
                                             >mdi-package-variant-closed</v-icon
                                         >
                                         <span class="text-subtitle-1 font-weight-bold"
                                             >水泥用量</span
                                         >
                                     </div>
-                                    <v-chip size="x-small" color="brown" variant="flat">C</v-chip>
+                                    <v-chip size="x-small" color="primary" variant="flat">C</v-chip>
                                 </div>
                                 <div class="text-h5 text-center mb-2 font-weight-bold text-primary">
                                     {{ editableParams.cement }} kg/m³
@@ -159,7 +159,7 @@
                                     :min="200"
                                     :max="600"
                                     :step="10"
-                                    color="brown"
+                                    color="primary"
                                     track-color="grey-lighten-2"
                                     thumb-label
                                     @update:model-value="handleParameterChange"
@@ -183,16 +183,14 @@
                             <v-card variant="outlined" class="pa-4 param-card">
                                 <div class="d-flex align-center justify-space-between mb-3">
                                     <div class="d-flex align-center">
-                                        <v-icon color="blue-grey" class="mr-2"
+                                        <v-icon color="primary" class="mr-2"
                                             >mdi-cube-outline</v-icon
                                         >
                                         <span class="text-subtitle-1 font-weight-bold"
                                             >高炉矿渣</span
                                         >
                                     </div>
-                                    <v-chip size="x-small" color="blue-grey" variant="flat"
-                                        >S</v-chip
-                                    >
+                                    <v-chip size="x-small" color="primary" variant="flat">S</v-chip>
                                 </div>
                                 <div class="text-h5 text-center mb-2 font-weight-bold text-primary">
                                     {{ editableParams.blast_furnace_slag }} kg/m³
@@ -202,7 +200,7 @@
                                     :min="0"
                                     :max="200"
                                     :step="5"
-                                    color="blue-grey"
+                                    color="primary"
                                     track-color="grey-lighten-2"
                                     thumb-label
                                     @update:model-value="handleParameterChange"
@@ -226,12 +224,10 @@
                             <v-card variant="outlined" class="pa-4 param-card">
                                 <div class="d-flex align-center justify-space-between mb-3">
                                     <div class="d-flex align-center">
-                                        <v-icon color="grey-darken-1" class="mr-2"
-                                            >mdi-grain</v-icon
-                                        >
+                                        <v-icon color="primary" class="mr-2">mdi-grain</v-icon>
                                         <span class="text-subtitle-1 font-weight-bold">粉煤灰</span>
                                     </div>
-                                    <v-chip size="x-small" color="grey-darken-1" variant="flat"
+                                    <v-chip size="x-small" color="primary" variant="flat"
                                         >FA</v-chip
                                     >
                                 </div>
@@ -243,7 +239,7 @@
                                     :min="0"
                                     :max="200"
                                     :step="5"
-                                    color="grey-darken-1"
+                                    color="primary"
                                     track-color="grey-lighten-2"
                                     thumb-label
                                     @update:model-value="handleParameterChange"
@@ -267,10 +263,10 @@
                             <v-card variant="outlined" class="pa-4 param-card">
                                 <div class="d-flex align-center justify-space-between mb-3">
                                     <div class="d-flex align-center">
-                                        <v-icon color="blue" class="mr-2">mdi-water</v-icon>
+                                        <v-icon color="primary" class="mr-2">mdi-water</v-icon>
                                         <span class="text-subtitle-1 font-weight-bold">水用量</span>
                                     </div>
-                                    <v-chip size="x-small" color="blue" variant="flat">W</v-chip>
+                                    <v-chip size="x-small" color="primary" variant="flat">W</v-chip>
                                 </div>
                                 <div class="text-h5 text-center mb-2 font-weight-bold text-primary">
                                     {{ editableParams.water }} kg/m³
@@ -280,7 +276,7 @@
                                     :min="100"
                                     :max="250"
                                     :step="5"
-                                    color="blue"
+                                    color="primary"
                                     track-color="grey-lighten-2"
                                     thumb-label
                                     @update:model-value="handleParameterChange"
@@ -304,12 +300,14 @@
                             <v-card variant="outlined" class="pa-4 param-card">
                                 <div class="d-flex align-center justify-space-between mb-3">
                                     <div class="d-flex align-center">
-                                        <v-icon color="purple" class="mr-2">mdi-flask</v-icon>
+                                        <v-icon color="primary" class="mr-2">mdi-flask</v-icon>
                                         <span class="text-subtitle-1 font-weight-bold"
                                             >高效减水剂</span
                                         >
                                     </div>
-                                    <v-chip size="x-small" color="purple" variant="flat">SP</v-chip>
+                                    <v-chip size="x-small" color="primary" variant="flat"
+                                        >SP</v-chip
+                                    >
                                 </div>
                                 <div class="text-h5 text-center mb-2 font-weight-bold text-primary">
                                     {{ editableParams.superplasticizer }} kg/m³
@@ -319,7 +317,7 @@
                                     :min="0"
                                     :max="15"
                                     :step="0.5"
-                                    color="purple"
+                                    color="primary"
                                     track-color="grey-lighten-2"
                                     thumb-label
                                     @update:model-value="handleParameterChange"
@@ -343,12 +341,12 @@
                             <v-card variant="outlined" class="pa-4 param-card">
                                 <div class="d-flex align-center justify-space-between mb-3">
                                     <div class="d-flex align-center">
-                                        <v-icon color="brown-darken-2" class="mr-2"
+                                        <v-icon color="primary" class="mr-2"
                                             >mdi-texture-box</v-icon
                                         >
                                         <span class="text-subtitle-1 font-weight-bold">粗骨料</span>
                                     </div>
-                                    <v-chip size="x-small" color="brown-darken-2" variant="flat"
+                                    <v-chip size="x-small" color="primary" variant="flat"
                                         >CA</v-chip
                                     >
                                 </div>
@@ -360,7 +358,7 @@
                                     :min="800"
                                     :max="1300"
                                     :step="10"
-                                    color="brown-darken-2"
+                                    color="primary"
                                     track-color="grey-lighten-2"
                                     thumb-label
                                     @update:model-value="handleParameterChange"
@@ -384,12 +382,10 @@
                             <v-card variant="outlined" class="pa-4 param-card">
                                 <div class="d-flex align-center justify-space-between mb-3">
                                     <div class="d-flex align-center">
-                                        <v-icon color="amber-darken-2" class="mr-2"
-                                            >mdi-grain</v-icon
-                                        >
+                                        <v-icon color="primary" class="mr-2">mdi-grain</v-icon>
                                         <span class="text-subtitle-1 font-weight-bold">细骨料</span>
                                     </div>
-                                    <v-chip size="x-small" color="amber-darken-2" variant="flat"
+                                    <v-chip size="x-small" color="primary" variant="flat"
                                         >FA</v-chip
                                     >
                                 </div>
@@ -401,7 +397,7 @@
                                     :min="500"
                                     :max="900"
                                     :step="10"
-                                    color="amber-darken-2"
+                                    color="primary"
                                     track-color="grey-lighten-2"
                                     thumb-label
                                     @update:model-value="handleParameterChange"
@@ -425,12 +421,14 @@
                             <v-card variant="outlined" class="pa-4 param-card">
                                 <div class="d-flex align-center justify-space-between mb-3">
                                     <div class="d-flex align-center">
-                                        <v-icon color="teal" class="mr-2"
+                                        <v-icon color="primary" class="mr-2"
                                             >mdi-calendar-clock</v-icon
                                         >
                                         <span class="text-subtitle-1 font-weight-bold">龄期</span>
                                     </div>
-                                    <v-chip size="x-small" color="teal" variant="flat">Age</v-chip>
+                                    <v-chip size="x-small" color="primary" variant="flat"
+                                        >Age</v-chip
+                                    >
                                 </div>
                                 <div class="text-h5 text-center mb-2 font-weight-bold text-primary">
                                     {{ editableParams.age }} 天
@@ -440,7 +438,7 @@
                                     :min="1"
                                     :max="90"
                                     :step="1"
-                                    color="teal"
+                                    color="primary"
                                     track-color="grey-lighten-2"
                                     thumb-label
                                     @update:model-value="handleParameterChange"
@@ -721,45 +719,10 @@ const generateReport = async () => {
         // 等待进度条完成
         await waitForAnalysisComplete();
 
-        // 准备数据传递给Step2
+        // 直接传递API返回的result，附加当前调整的配合比参数
         const reportData = {
-            // 配合比参数
-            mixProportionParams: editableParams.value,
-            // API返回的预测强度
-            predicted_strength:
-                result.predicted_strength || result.prediction || predictedStrength.value,
-            api_result: result, // 保存完整的API响应
-            water_cement_ratio: parseFloat(waterCementRatio.value),
-            // 基本信息
-            reportNumber: concreteStore.concreteData?.reportNumber || '自动生成-' + Date.now(),
-            projectName: concreteStore.concreteData?.projectName || '配合比优化分析',
-            testDate: new Date().toLocaleDateString(),
-            strength_grade: 'C30',
-            actual_strength:
-                result.predicted_strength || result.prediction || predictedStrength.value,
-            cement_type: 'P.O 42.5',
-            cement_fineness: '比表面积 350 m²/kg',
-            aggregate_info: `碎石5-25mm连续级配，含泥量0.5%`,
-            admixture: `聚羧酸高效减水剂 ${editableParams.value.superplasticizer}kg/m³`,
-            curing_condition: `标准养护20±2°C，湿度≥95%`,
-            curing_age: `${editableParams.value.age}天`,
-            test_method: 'GB/T 50081-2019',
-            conclusion: '质量合格',
-            // 传递完整参数给Step2
-            __concreteParams: {
-                cement_content: editableParams.value.cement,
-                water_cement_ratio: parseFloat(waterCementRatio.value),
-                water_reducer_dosage:
-                    (editableParams.value.superplasticizer / editableParams.value.cement) * 100,
-                curing_temperature: 20,
-                curing_days: editableParams.value.age,
-                fly_ash_dosage: (editableParams.value.fly_ash / totalCementitious.value) * 100,
-                slag_dosage:
-                    (editableParams.value.blast_furnace_slag / totalCementitious.value) * 100,
-                coarse_aggregate_content: editableParams.value.coarse_aggregate,
-                fine_aggregate_content: editableParams.value.fine_aggregate,
-                sand_ratio: parseFloat(sandRatio.value),
-            },
+            ...result, // 完整的API返回结果
+            mixProportionParams: editableParams.value, // 附加当前的配合比参数供参考
         };
 
         // 触发表单变化，传递给父组件
