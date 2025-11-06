@@ -19,7 +19,7 @@ const router = createRouter({
         },
         {
             path: '/',
-            redirect: '/components/table',
+            redirect: '/components/deduce',
         },
         {
             path: '/components',
@@ -42,14 +42,14 @@ const router = createRouter({
                     component: () => import('@/views/componets/detection.vue'),
                 },
                 {
-                    path: 'table',
-                    name: '抓取页面',
+                    path: 'deduce',
+                    name: '推演系统',
                     meta: {
-                        title: '抓取页面',
-                        icon: 'mdi-table',
+                        title: '混凝土强度推演',
+                        icon: 'mdi-chart-timeline-variant',
                         visible: true,
                     },
-                    component: () => import('@/views/componets/table.vue'),
+                    component: () => import('@/views/componets/deduce.vue'),
                 },
             ],
         },
@@ -122,7 +122,7 @@ export async function syncRouter(toFirst = false) {
         // 路由已在上面静态配置，这里不再需要动态添加
         // 直接返回成功，保持与原来的接口一致
         if (toFirst) {
-            await router.push('/components/table');
+            await router.push('/components/deduce');
         }
         return Promise.resolve(true);
     } catch (err) {

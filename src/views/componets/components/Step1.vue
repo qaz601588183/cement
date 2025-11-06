@@ -505,6 +505,7 @@
 </template>
 
 <script setup lang="ts">
+import PredictAPI, { type PredictRequest } from '@/api/predict';
 import { useConcreteStore, type MixProportionParams } from '@/stores/useConcreteStore';
 import { calculateConcreteStrength, type ConcreteParameters } from '@/utils/concreteStrengthModel';
 import { computed, onMounted, ref } from 'vue';
@@ -683,7 +684,7 @@ const generateReport = async () => {
     });
 
     // 准备请求参数
-    const requestData = {
+    const requestData: PredictRequest = {
         age: editableParams.value.age,
         blast_furnace_slag: editableParams.value.blast_furnace_slag,
         cement: editableParams.value.cement,
@@ -700,20 +701,8 @@ const generateReport = async () => {
     simulateAnalysisForPrediction();
 
     try {
-        // 调用预测接口
-        const response = await fetch('http://localhost:8000/api/predict', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestData),
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result = await response.json();
+        // 调用预测接口（使用封装的API）
+        const result = await PredictAPI.predictStrength(requestData);
         console.log('接口返回结果:', result);
 
         // 等待进度条完成
