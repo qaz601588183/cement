@@ -38,13 +38,6 @@
                 </v-card-text>
             </v-card>
 
-            <!-- 调整详情图表 -->
-            <v-card class="mb-6" v-if="optimizeResult.adjustments?.length > 0">
-                <v-card-text>
-                    <div ref="adjustmentDetailsChartRef" style="width: 100%; height: 400px"></div>
-                </v-card-text>
-            </v-card>
-
             <!-- 配比雷达图对比 -->
             <v-card class="mb-6">
                 <v-card-text>
@@ -180,7 +173,6 @@
 </template>
 
 <script setup lang="ts">
-import type { OptimizeResponse } from '@/api/predict';
 import { useConcreteStore } from '@/stores/useConcreteStore';
 import type { EChartsOption } from 'echarts';
 import * as echarts from 'echarts';
@@ -194,12 +186,10 @@ const router = useRouter();
 // ECharts实例引用
 const strengthComparisonChartRef = ref<HTMLDivElement>();
 const paramComparisonChartRef = ref<HTMLDivElement>();
-const adjustmentDetailsChartRef = ref<HTMLDivElement>();
 const radarChartRef = ref<HTMLDivElement>();
 
 let strengthComparisonChart: echarts.ECharts | null = null;
 let paramComparisonChart: echarts.ECharts | null = null;
-let adjustmentDetailsChart: echarts.ECharts | null = null;
 let radarChart: echarts.ECharts | null = null;
 
 // 优化结果（从store读取）
@@ -533,101 +523,6 @@ const initParamComparisonChart = () => {
     paramComparisonChart.setOption(option);
 };
 
-// 初始化调整详情图表（瀑布图）
-const initAdjustmentDetailsChart = () => {
-    if (!adjustmentDetailsChartRef.value) return;
-
-    adjustmentDetailsChart = echarts.init(adjustmentDetailsChartRef.value);
-
-    const adjustments = optimizeResult.value.adjustments || [];
-
-    if (adjustments.length === 0) return;
-
-    // 直接使用API返回的中文名称，如果没有则通过paramLabels查找
-    const names = adjustments.map(
-        (adj: any) => adj.name || paramLabels[adj.factor]?.label || adj.factor
-    );
-    const changes = adjustments.map((adj: any) => adj.change || 0);
-    const changePercents = adjustments.map((adj: any) => adj.change_percent || 0);
-
-    const option: EChartsOption = {
-        title: {
-            text: '参数调整详情',
-            left: 'center',
-            textStyle: {
-                fontSize: 18,
-                fontWeight: 'bold',
-            },
-        },
-        tooltip: {
-            trigger: 'axis',
-            axisPointer: {
-                type: 'shadow',
-            },
-            formatter: (params: any) => {
-                const data = params[0];
-                const index = data.dataIndex;
-                const adj = adjustments[index];
-                return `
-                    <div style="padding: 8px;">
-                        <strong>${names[index]}</strong><br/>
-                        原始值: <strong>${adj.original_value?.toFixed(2)}</strong><br/>
-                        优化值: <strong>${adj.optimized_value?.toFixed(2)}</strong><br/>
-                        变化量: <strong style="color: ${data.value >= 0 ? '#4caf50' : '#ff9800'}">${data.value > 0 ? '+' : ''}${data.value.toFixed(2)}</strong><br/>
-                        变化率: <strong>${changePercents[index] > 0 ? '+' : ''}${changePercents[index].toFixed(2)}%</strong>
-                    </div>
-                `;
-            },
-        },
-        grid: {
-            left: '15%',
-            right: '10%',
-            bottom: '10%',
-            top: '15%',
-        },
-        xAxis: {
-            type: 'value',
-            name: '变化量',
-            axisLabel: {
-                formatter: (value: number) => value.toFixed(2),
-            },
-        },
-        yAxis: {
-            type: 'category',
-            data: names,
-            axisLabel: {
-                fontSize: 12,
-            },
-        },
-        series: [
-            {
-                name: '参数变化',
-                type: 'bar',
-                data: changes.map((change: number) => ({
-                    value: change,
-                    itemStyle: {
-                        color: change >= 0 ? '#4caf50' : '#ff9800',
-                    },
-                })),
-                label: {
-                    show: true,
-                    position: 'right',
-                    formatter: (params: any) => {
-                        const index = params.dataIndex;
-                        return `${params.value > 0 ? '+' : ''}${params.value.toFixed(2)} (${
-                            changePercents[index] > 0 ? '+' : ''
-                        }${changePercents[index].toFixed(2)}%)`;
-                    },
-                    fontSize: 11,
-                },
-                barWidth: '60%',
-            },
-        ],
-    };
-
-    adjustmentDetailsChart.setOption(option);
-};
-
 // 初始化雷达图
 const initRadarChart = () => {
     if (!radarChartRef.value) return;
@@ -668,26 +563,57 @@ const initRadarChart = () => {
         optimized.fine_aggregate || 0,
     ];
 
-    const option: EChartsOption = {
+    const option: any = {
+        backgroundColor: '#1e1e1e',
         title: {
             text: '配比参数雷达对比',
             left: 'center',
             textStyle: {
                 fontSize: 18,
                 fontWeight: 'bold',
+                color: '#e0e0e0',
             },
         },
         tooltip: {
             trigger: 'item',
+            backgroundColor: 'rgba(50, 50, 50, 0.9)',
+            borderColor: '#666',
+            textStyle: {
+                color: '#e0e0e0',
+            },
         },
         legend: {
             data: ['基准配比', '优化配比'],
             top: '10%',
+            textStyle: {
+                color: '#e0e0e0',
+            },
         },
         radar: {
             indicator: indicators,
             center: ['50%', '55%'],
             radius: '65%',
+            name: {
+                textStyle: {
+                    color: '#e0e0e0',
+                    fontSize: 13,
+                },
+            },
+            splitArea: {
+                areaStyle: {
+                    color: ['rgba(255, 255, 255, 0.05)', 'rgba(255, 255, 255, 0.1)'],
+                },
+            },
+            axisLine: {
+                lineStyle: {
+                    color: 'rgba(255, 255, 255, 0.2)',
+                },
+            },
+            splitLine: {
+                lineStyle: {
+                    color: 'rgba(255, 255, 255, 0.2)',
+                },
+            },
         },
         series: [
             {
@@ -700,6 +626,10 @@ const initRadarChart = () => {
                         itemStyle: {
                             color: '#42a5f5',
                         },
+                        lineStyle: {
+                            color: '#42a5f5',
+                            width: 2,
+                        },
                         areaStyle: {
                             color: 'rgba(66, 165, 245, 0.3)',
                         },
@@ -709,6 +639,10 @@ const initRadarChart = () => {
                         name: '优化配比',
                         itemStyle: {
                             color: '#66bb6a',
+                        },
+                        lineStyle: {
+                            color: '#66bb6a',
+                            width: 2,
                         },
                         areaStyle: {
                             color: 'rgba(102, 187, 106, 0.3)',
@@ -727,7 +661,6 @@ const initAllCharts = async () => {
     await nextTick();
     initStrengthComparisonChart();
     initParamComparisonChart();
-    initAdjustmentDetailsChart();
     initRadarChart();
 };
 
@@ -735,7 +668,6 @@ const initAllCharts = async () => {
 const handleResize = () => {
     strengthComparisonChart?.resize();
     paramComparisonChart?.resize();
-    adjustmentDetailsChart?.resize();
     radarChart?.resize();
 };
 
@@ -749,7 +681,6 @@ onMounted(() => {
 onBeforeUnmount(() => {
     strengthComparisonChart?.dispose();
     paramComparisonChart?.dispose();
-    adjustmentDetailsChart?.dispose();
     radarChart?.dispose();
     window.removeEventListener('resize', handleResize);
 });

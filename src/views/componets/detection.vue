@@ -46,7 +46,7 @@
                         <strong>检测数据摘要：</strong>
                     </div>
 
-                    <v-list density="compact" class="bg-grey-lighten-4 rounded">
+                    <v-list density="compact" class="rounded">
                         <v-list-item>
                             <v-list-item-title>
                                 <v-icon size="small" class="mr-2" color="success"
