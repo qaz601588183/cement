@@ -3,7 +3,12 @@
         <v-card-title class="d-flex justify-space-between align-center">
             <span class="text-h6">反向推演结果 - 优化配合比方案</span>
             <div>
-                <v-btn variant="text" prepend-icon="mdi-arrow-left" @click="emit('back')" class="mr-2">
+                <v-btn
+                    variant="text"
+                    prepend-icon="mdi-arrow-left"
+                    @click="emit('back')"
+                    class="mr-2"
+                >
                     返回修改
                 </v-btn>
             </div>
@@ -11,112 +16,122 @@
         <v-divider></v-divider>
 
         <v-card-text class="pa-6">
-            <!-- 核心结果卡片 -->
-            <v-card class="mb-6" color="primary" variant="tonal">
-                <v-card-text class="pa-6">
-                    <v-row align="center">
-                        <v-col cols="12" md="4" class="text-center">
-                            <div class="text-caption mb-2">基准强度</div>
-                            <div class="text-h4 font-weight-bold">
-                                {{ optimizeResult.base_strength?.toFixed(2) || 0 }}
-                                <span class="text-h6">MPa</span>
-                            </div>
-                        </v-col>
-                        <v-col cols="12" md="4" class="text-center">
-                            <v-icon size="64" color="success">mdi-arrow-right-bold</v-icon>
-                            <div class="text-h6 text-success font-weight-bold mt-2">
-                                +{{ optimizeResult.improvement_percent?.toFixed(2) || 0 }}%
-                            </div>
-                        </v-col>
-                        <v-col cols="12" md="4" class="text-center">
-                            <div class="text-caption mb-2">优化后强度</div>
-                            <div class="text-h4 font-weight-bold text-success">
-                                {{ optimizeResult.predicted_strength?.toFixed(2) || 0 }}
-                                <span class="text-h6">MPa</span>
-                            </div>
-                        </v-col>
-                    </v-row>
+            <!-- 强度优化对比图表 -->
+            <v-card class="mb-6">
+                <v-card-text>
+                    <div ref="strengthComparisonChartRef" style="width: 100%; height: 400px"></div>
                 </v-card-text>
             </v-card>
 
-            <!-- 参数对比表格 -->
+            <!-- 配比参数对比图表 -->
+            <v-card class="mb-6">
+                <v-card-text>
+                    <div ref="paramComparisonChartRef" style="width: 100%; height: 400px"></div>
+                </v-card-text>
+            </v-card>
+
+            <!-- 调整详情图表 -->
+            <v-card class="mb-6" v-if="optimizeResult.adjustments?.length > 0">
+                <v-card-text>
+                    <div ref="adjustmentDetailsChartRef" style="width: 100%; height: 400px"></div>
+                </v-card-text>
+            </v-card>
+
+            <!-- 配比雷达图对比 -->
+            <v-card class="mb-6">
+                <v-card-text>
+                    <div ref="radarChartRef" style="width: 100%; height: 500px"></div>
+                </v-card-text>
+            </v-card>
+
+            <!-- 成分占比对比 -->
+            <v-row class="mb-6">
+                <v-col cols="12" md="6">
+                    <v-card>
+                        <v-card-title class="text-center">基准配比成分占比</v-card-title>
+                        <v-card-text>
+                            <div ref="basePieChartRef" style="width: 100%; height: 400px"></div>
+                        </v-card-text>
+                    </v-card>
+                </v-col>
+                <v-col cols="12" md="6">
+                    <v-card>
+                        <v-card-title class="text-center">优化配比成分占比</v-card-title>
+                        <v-card-text>
+                            <div
+                                ref="optimizedPieChartRef"
+                                style="width: 100%; height: 400px"
+                            ></div>
+                        </v-card-text>
+                    </v-card>
+                </v-col>
+            </v-row>
+
+            <!-- 详细数据对比表格 -->
             <v-card class="mb-6">
                 <v-card-title>
-                    <v-icon class="mr-2">mdi-compare</v-icon>
-                    配比参数对比
+                    <v-icon class="mr-2">mdi-table</v-icon>
+                    详细数据对比
                 </v-card-title>
-                <v-card-text class="pa-0">
+                <v-card-text>
                     <v-table>
                         <thead>
                             <tr>
                                 <th class="text-left">参数名称</th>
-                                <th class="text-right">基准配比</th>
-                                <th class="text-right">优化配比</th>
-                                <th class="text-center">调整状态</th>
+                                <th class="text-right">基准值</th>
+                                <th class="text-right">优化值</th>
+                                <th class="text-right">变化量</th>
+                                <th class="text-right">变化率</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr
-                                v-for="param in comparisonParams"
-                                :key="param.key"
-                            >
-                                <td class="font-weight-medium">
-                                    <v-icon size="small" class="mr-2" :color="param.changed ? 'primary' : 'grey'">
-                                        {{ param.icon }}
-                                    </v-icon>
-                                    {{ param.label }}
+                            <tr v-for="key in paramKeys" :key="key">
+                                <td>
+                                    <v-icon size="small" class="mr-2">{{
+                                        paramLabels[key]?.icon
+                                    }}</v-icon>
+                                    {{ paramLabels[key]?.label }}
                                 </td>
-                                <td class="text-right">{{ formatValue(param.baseValue) }} {{ param.unit }}</td>
-                                <td class="text-right font-weight-bold" :class="{ 'text-primary': param.changed }">
-                                    {{ formatValue(param.optimizedValue) }} {{ param.unit }}
+                                <td class="text-right">
+                                    {{ formatValue(optimizeResult.base_config?.[key]) }}
+                                    {{ paramLabels[key]?.unit }}
                                 </td>
-                                <td class="text-center">
-                                    <v-chip
-                                        v-if="param.changed"
-                                        :color="param.changePercent > 0 ? 'success' : 'warning'"
-                                        size="small"
-                                        label
-                                    >
-                                        {{ param.changePercent > 0 ? '+' : '' }}{{ param.changePercent.toFixed(1) }}%
-                                    </v-chip>
-                                    <v-chip v-else color="grey" size="small" variant="text">
-                                        未调整
-                                    </v-chip>
+                                <td class="text-right">
+                                    {{ formatValue(optimizeResult.optimized_config?.[key]) }}
+                                    {{ paramLabels[key]?.unit }}
+                                </td>
+                                <td class="text-right" :class="getChangeClass(key)">
+                                    {{ formatChange(key) }}
+                                </td>
+                                <td class="text-right" :class="getChangeClass(key)">
+                                    {{ formatChangePercent(key) }}
                                 </td>
                             </tr>
                         </tbody>
+                        <tfoot>
+                            <tr class="font-weight-bold">
+                                <td>混凝土强度</td>
+                                <td class="text-right">
+                                    {{ formatValue(optimizeResult.base_strength) }} MPa
+                                </td>
+                                <td class="text-right">
+                                    {{ formatValue(optimizeResult.predicted_strength) }} MPa
+                                </td>
+                                <td class="text-right text-success">
+                                    {{
+                                        formatValue(
+                                            optimizeResult.predicted_strength -
+                                                optimizeResult.base_strength
+                                        )
+                                    }}
+                                    MPa
+                                </td>
+                                <td class="text-right text-success">
+                                    +{{ formatValue(optimizeResult.improvement_percent) }}%
+                                </td>
+                            </tr>
+                        </tfoot>
                     </v-table>
-                </v-card-text>
-            </v-card>
-
-            <!-- 调整详情 -->
-            <v-card class="mb-6" v-if="optimizeResult.adjustments?.length > 0">
-                <v-card-title>
-                    <v-icon class="mr-2">mdi-information-outline</v-icon>
-                    详细调整说明
-                </v-card-title>
-                <v-card-text class="pa-4">
-                    <v-list lines="two">
-                        <v-list-item
-                            v-for="(adjustment, index) in optimizeResult.adjustments"
-                            :key="index"
-                            class="mb-2"
-                        >
-                            <template v-slot:prepend>
-                                <v-avatar :color="adjustment.change > 0 ? 'success' : 'warning'">
-                                    <v-icon>{{ adjustment.change > 0 ? 'mdi-arrow-up' : 'mdi-arrow-down' }}</v-icon>
-                                </v-avatar>
-                            </template>
-                            <v-list-item-title class="font-weight-bold">
-                                {{ getParamLabel(adjustment.factor) }}
-                            </v-list-item-title>
-                            <v-list-item-subtitle>
-                                从 {{ adjustment.original_value?.toFixed(2) }} 调整为 {{ adjustment.optimized_value?.toFixed(2) }}，
-                                变化 {{ adjustment.change > 0 ? '+' : '' }}{{ adjustment.change?.toFixed(2) }}
-                                ({{ adjustment.change_percent > 0 ? '+' : '' }}{{ adjustment.change_percent?.toFixed(1) }}%)
-                            </v-list-item-subtitle>
-                        </v-list-item>
-                    </v-list>
                 </v-card-text>
             </v-card>
 
@@ -143,11 +158,7 @@
                 >
                     返回修改参数
                 </v-btn>
-                <v-btn
-                    color="primary"
-                    prepend-icon="mdi-check-circle"
-                    @click="applyOptimization"
-                >
+                <v-btn color="primary" prepend-icon="mdi-check-circle" @click="applyOptimization">
                     应用此优化方案
                 </v-btn>
             </div>
@@ -157,7 +168,9 @@
 
 <script setup lang="ts">
 import type { OptimizeResponse } from '@/api/predict';
-import { computed } from 'vue';
+import type { EChartsOption } from 'echarts';
+import * as echarts from 'echarts';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 
 interface Props {
     data: OptimizeResponse;
@@ -169,6 +182,21 @@ const emit = defineEmits<{
     back: [];
     apply: [config: any];
 }>();
+
+// ECharts实例引用
+const strengthComparisonChartRef = ref<HTMLDivElement>();
+const paramComparisonChartRef = ref<HTMLDivElement>();
+const adjustmentDetailsChartRef = ref<HTMLDivElement>();
+const radarChartRef = ref<HTMLDivElement>();
+const basePieChartRef = ref<HTMLDivElement>();
+const optimizedPieChartRef = ref<HTMLDivElement>();
+
+let strengthComparisonChart: echarts.ECharts | null = null;
+let paramComparisonChart: echarts.ECharts | null = null;
+let adjustmentDetailsChart: echarts.ECharts | null = null;
+const radarChart: echarts.ECharts | null = null;
+const basePieChart: echarts.ECharts | null = null;
+const optimizedPieChart: echarts.ECharts | null = null;
 
 // 优化结果
 const optimizeResult = computed(() => props.data);
@@ -185,55 +213,349 @@ const paramLabels: Record<string, { label: string; unit: string; icon: string }>
     age: { label: '龄期', unit: '天', icon: 'mdi-calendar' },
 };
 
-// 获取参数标签
-const getParamLabel = (key: string) => {
-    return paramLabels[key]?.label || key;
-};
-
-// 格式化数值
-const formatValue = (value: any) => {
-    if (typeof value === 'number') {
-        return value.toFixed(2);
-    }
-    return value || 0;
-};
-
-// 参数对比数据
-const comparisonParams = computed(() => {
-    const base = optimizeResult.value.base_config || {};
-    const optimized = optimizeResult.value.optimized_config || {};
-    const params = [];
-
-    for (const key in paramLabels) {
-        const baseValue = base[key] || 0;
-        const optimizedValue = optimized[key] || 0;
-        const changed = Math.abs(baseValue - optimizedValue) > 0.01;
-        const changePercent = baseValue !== 0 ? ((optimizedValue - baseValue) / baseValue) * 100 : 0;
-
-        params.push({
-            key,
-            label: paramLabels[key].label,
-            unit: paramLabels[key].unit,
-            icon: paramLabels[key].icon,
-            baseValue,
-            optimizedValue,
-            changed,
-            changePercent,
-        });
-    }
-
-    return params;
-});
-
 // 应用优化
 const applyOptimization = () => {
     console.log('应用优化方案:', optimizeResult.value.optimized_config);
     emit('apply', optimizeResult.value.optimized_config);
     // 可以跳转到正向推演，使用优化后的配比进行验证
 };
+
+// 初始化强度对比图表
+const initStrengthComparisonChart = () => {
+    if (!strengthComparisonChartRef.value) return;
+
+    strengthComparisonChart = echarts.init(strengthComparisonChartRef.value);
+
+    const baseStrength = optimizeResult.value.base_strength || 0;
+    const predictedStrength = optimizeResult.value.predicted_strength || 0;
+    const improvementPercent = optimizeResult.value.improvement_percent || 0;
+
+    const option: EChartsOption = {
+        title: {
+            text: '强度优化对比',
+            left: 'center',
+            textStyle: {
+                fontSize: 18,
+                fontWeight: 'bold',
+            },
+        },
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'shadow',
+            },
+            formatter: (params: any) => {
+                const data = params[0];
+                return `
+                    <div style="padding: 8px;">
+                        <strong>${data.name}</strong><br/>
+                        强度: <strong>${data.value.toFixed(2)} MPa</strong><br/>
+                        ${data.seriesIndex === 1 ? `提升: <strong>+${improvementPercent.toFixed(2)}%</strong>` : ''}
+                    </div>
+                `;
+            },
+        },
+        legend: {
+            data: ['基准强度', '优化后强度'],
+            top: '10%',
+        },
+        grid: {
+            left: '10%',
+            right: '10%',
+            bottom: '10%',
+            top: '25%',
+        },
+        xAxis: {
+            type: 'category',
+            data: ['强度对比'],
+            axisLabel: {
+                fontSize: 14,
+                fontWeight: 'bold',
+            },
+        },
+        yAxis: {
+            type: 'value',
+            name: '强度 (MPa)',
+            axisLabel: {
+                formatter: (value: number) => value.toFixed(2),
+            },
+        },
+        series: [
+            {
+                name: '基准强度',
+                type: 'bar',
+                data: [baseStrength],
+                itemStyle: {
+                    color: '#42a5f5',
+                },
+                label: {
+                    show: true,
+                    position: 'top',
+                    formatter: (params: any) => `${params.value.toFixed(2)} MPa`,
+                    fontSize: 14,
+                    fontWeight: 'bold',
+                },
+                barWidth: '30%',
+            },
+            {
+                name: '优化后强度',
+                type: 'bar',
+                data: [predictedStrength],
+                itemStyle: {
+                    color: '#4caf50',
+                },
+                label: {
+                    show: true,
+                    position: 'top',
+                    formatter: (params: any) =>
+                        `${params.value.toFixed(2)} MPa\n(+${improvementPercent.toFixed(2)}%)`,
+                    fontSize: 14,
+                    fontWeight: 'bold',
+                },
+                barWidth: '30%',
+            },
+        ],
+    };
+
+    strengthComparisonChart.setOption(option);
+};
+
+// 初始化参数对比图表
+const initParamComparisonChart = () => {
+    if (!paramComparisonChartRef.value) return;
+
+    paramComparisonChart = echarts.init(paramComparisonChartRef.value);
+
+    const base = optimizeResult.value.base_config || {};
+    const optimized = optimizeResult.value.optimized_config || {};
+
+    const paramKeys = [
+        'cement',
+        'blast_furnace_slag',
+        'fly_ash',
+        'water',
+        'superplasticizer',
+        'coarse_aggregate',
+        'fine_aggregate',
+    ];
+
+    const paramNames = paramKeys.map((key) => paramLabels[key]?.label || key);
+    const baseValues = paramKeys.map((key) => base[key] || 0);
+    const optimizedValues = paramKeys.map((key) => optimized[key] || 0);
+
+    const option: EChartsOption = {
+        title: {
+            text: '配比参数优化对比',
+            left: 'center',
+            textStyle: {
+                fontSize: 18,
+                fontWeight: 'bold',
+            },
+        },
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'shadow',
+            },
+            formatter: (params: any) => {
+                const name = params[0].axisValue;
+                const baseValue = params[0].value;
+                const optimizedValue = params[1].value;
+                const change = optimizedValue - baseValue;
+                const changePercent =
+                    baseValue !== 0 ? ((change / baseValue) * 100).toFixed(2) : '0.00';
+                return `
+                    <div style="padding: 8px;">
+                        <strong>${name}</strong><br/>
+                        基准: <strong>${baseValue.toFixed(2)}</strong><br/>
+                        优化: <strong>${optimizedValue.toFixed(2)}</strong><br/>
+                        变化: <strong style="color: ${change >= 0 ? '#4caf50' : '#ff9800'}">${change > 0 ? '+' : ''}${change.toFixed(2)} (${change > 0 ? '+' : ''}${changePercent}%)</strong>
+                    </div>
+                `;
+            },
+        },
+        legend: {
+            data: ['基准配比', '优化配比'],
+            top: '10%',
+        },
+        grid: {
+            left: '10%',
+            right: '10%',
+            bottom: '15%',
+            top: '20%',
+        },
+        xAxis: {
+            type: 'category',
+            data: paramNames,
+            axisLabel: {
+                rotate: 45,
+                fontSize: 11,
+            },
+        },
+        yAxis: {
+            type: 'value',
+            name: '用量 (kg/m³)',
+            axisLabel: {
+                formatter: (value: number) => value.toFixed(2),
+            },
+        },
+        series: [
+            {
+                name: '基准配比',
+                type: 'bar',
+                data: baseValues,
+                itemStyle: {
+                    color: '#42a5f5',
+                },
+                label: {
+                    show: true,
+                    position: 'top',
+                    formatter: (params: any) => params.value.toFixed(2),
+                    fontSize: 10,
+                },
+            },
+            {
+                name: '优化配比',
+                type: 'bar',
+                data: optimizedValues,
+                itemStyle: {
+                    color: '#66bb6a',
+                },
+                label: {
+                    show: true,
+                    position: 'top',
+                    formatter: (params: any) => params.value.toFixed(2),
+                    fontSize: 10,
+                },
+            },
+        ],
+    };
+
+    paramComparisonChart.setOption(option);
+};
+
+// 初始化调整详情图表（瀑布图）
+const initAdjustmentDetailsChart = () => {
+    if (!adjustmentDetailsChartRef.value) return;
+
+    adjustmentDetailsChart = echarts.init(adjustmentDetailsChartRef.value);
+
+    const adjustments = optimizeResult.value.adjustments || [];
+
+    if (adjustments.length === 0) return;
+
+    const names = adjustments.map((adj: any) => paramLabels[adj.factor]?.label || adj.factor);
+    const changes = adjustments.map((adj: any) => adj.change || 0);
+    const changePercents = adjustments.map((adj: any) => adj.change_percent || 0);
+
+    const option: EChartsOption = {
+        title: {
+            text: '参数调整详情',
+            left: 'center',
+            textStyle: {
+                fontSize: 18,
+                fontWeight: 'bold',
+            },
+        },
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'shadow',
+            },
+            formatter: (params: any) => {
+                const data = params[0];
+                const index = data.dataIndex;
+                const adj = adjustments[index];
+                return `
+                    <div style="padding: 8px;">
+                        <strong>${names[index]}</strong><br/>
+                        原始值: <strong>${adj.original_value?.toFixed(2)}</strong><br/>
+                        优化值: <strong>${adj.optimized_value?.toFixed(2)}</strong><br/>
+                        变化量: <strong style="color: ${data.value >= 0 ? '#4caf50' : '#ff9800'}">${data.value > 0 ? '+' : ''}${data.value.toFixed(2)}</strong><br/>
+                        变化率: <strong>${changePercents[index] > 0 ? '+' : ''}${changePercents[index].toFixed(2)}%</strong>
+                    </div>
+                `;
+            },
+        },
+        grid: {
+            left: '15%',
+            right: '10%',
+            bottom: '10%',
+            top: '15%',
+        },
+        xAxis: {
+            type: 'value',
+            name: '变化量',
+            axisLabel: {
+                formatter: (value: number) => value.toFixed(2),
+            },
+        },
+        yAxis: {
+            type: 'category',
+            data: names,
+            axisLabel: {
+                fontSize: 12,
+            },
+        },
+        series: [
+            {
+                name: '参数变化',
+                type: 'bar',
+                data: changes.map((change: number) => ({
+                    value: change,
+                    itemStyle: {
+                        color: change >= 0 ? '#4caf50' : '#ff9800',
+                    },
+                })),
+                label: {
+                    show: true,
+                    position: 'right',
+                    formatter: (params: any) => {
+                        const index = params.dataIndex;
+                        return `${params.value > 0 ? '+' : ''}${params.value.toFixed(2)} (${
+                            changePercents[index] > 0 ? '+' : ''
+                        }${changePercents[index].toFixed(2)}%)`;
+                    },
+                    fontSize: 11,
+                },
+                barWidth: '60%',
+            },
+        ],
+    };
+
+    adjustmentDetailsChart.setOption(option);
+};
+
+// 初始化所有图表
+const initAllCharts = async () => {
+    await nextTick();
+    initStrengthComparisonChart();
+    initParamComparisonChart();
+    initAdjustmentDetailsChart();
+};
+
+// 窗口resize时重新调整图表大小
+const handleResize = () => {
+    strengthComparisonChart?.resize();
+    paramComparisonChart?.resize();
+    adjustmentDetailsChart?.resize();
+};
+
+// 生命周期
+onMounted(() => {
+    initAllCharts();
+    window.addEventListener('resize', handleResize);
+});
+
+// 组件卸载时清理
+onBeforeUnmount(() => {
+    strengthComparisonChart?.dispose();
+    paramComparisonChart?.dispose();
+    adjustmentDetailsChart?.dispose();
+    window.removeEventListener('resize', handleResize);
+});
 </script>
 
 <style lang="scss" scoped>
 // 使用Vuetify默认样式
 </style>
-

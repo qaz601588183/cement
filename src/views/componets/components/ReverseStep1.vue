@@ -2,39 +2,40 @@
     <v-card class="my-4">
         <v-card-title class="d-flex justify-space-between align-center">
             <span class="text-h6">反向推演 - 智能优化配合比</span>
-            <v-btn variant="text" prepend-icon="mdi-arrow-left" @click="emit('back')">
-                返回
-            </v-btn>
         </v-card-title>
         <v-divider></v-divider>
 
         <!-- 优化 Loading 状态 -->
         <div v-if="isOptimizing" class="text-center pa-10">
-            <v-progress-circular
-                :model-value="optimizeProgress"
-                :rotate="360"
-                :size="100"
-                :width="10"
-                color="primary"
-                class="mb-4"
-            >
-                <template v-slot:default>
-                    <div class="text-h5">{{ Math.ceil(optimizeProgress) }}%</div>
-                </template>
-            </v-progress-circular>
+            <!-- Vuetify 加载动画 -->
+            <div class="loading-container mb-6">
+                <v-progress-circular
+                    :model-value="optimizeProgress"
+                    :size="200"
+                    :width="15"
+                    color="primary"
+                    class="mb-4"
+                >
+                    <div class="text-h4 font-weight-bold text-primary">
+                        {{ Math.ceil(optimizeProgress) }}%
+                    </div>
+                </v-progress-circular>
+            </div>
             <div class="mt-6">
                 <div class="text-h5 mb-4 font-weight-bold">{{ optimizeStage }}</div>
                 <v-progress-linear
                     :model-value="optimizeProgress"
                     :color="getProgressColor(optimizeProgress)"
+                    :bg-color="getProgressColor(optimizeProgress)"
+                    bg-opacity="0.15"
                     height="24"
                     rounded
                     striped
-                    class="mx-auto"
+                    class="mx-auto progress-bar-enhanced"
                     style="max-width: 600px"
                 >
                     <template v-slot:default="{ value }">
-                        <strong class="text-white">{{ Math.ceil(value) }}%</strong>
+                        <strong class="progress-text">{{ Math.ceil(value) }}%</strong>
                     </template>
                 </v-progress-linear>
                 <div class="d-flex justify-center align-center mt-4 text-subtitle-1">
@@ -268,7 +269,7 @@
 </template>
 
 <script setup lang="ts">
-import { OptimizeAPI, type OptimizeRequest, type ObservedConfig } from '@/api/predict';
+import { OptimizeAPI, type ObservedConfig, type OptimizeRequest } from '@/api/predict';
 import { computed, ref } from 'vue';
 
 const emit = defineEmits<{
@@ -276,9 +277,6 @@ const emit = defineEmits<{
     next: [];
     'form-change': [data: any];
 }>();
-
-// 配置
-const OPTIMIZE_DURATION = 2000; // 2秒优化时间
 
 // 状态
 const isOptimizing = ref(false);
@@ -366,7 +364,7 @@ const startOptimization = async () => {
     // 显示loading
     isOptimizing.value = true;
     optimizeProgress.value = 0;
-    estimatedTime.value = Math.ceil(OPTIMIZE_DURATION / 1000);
+    estimatedTime.value = 15; // 初始估计15秒
 
     // 重置优化阶段
     optimizeStages.value.forEach((stage) => {
@@ -392,16 +390,22 @@ const startOptimization = async () => {
 
     console.log('正在调用优化接口，参数:', request);
 
-    // 启动进度模拟
-    simulateOptimization();
+    // 记录开始时间
+    const startTime = Date.now();
+
+    // 启动真实进度模拟
+    const progressInterval = simulateRealOptimizeProgress(startTime);
 
     try {
         // 调用优化接口
         const result = await OptimizeAPI.optimizeConfig(request);
         console.log('优化接口返回结果:', result);
 
-        // 等待进度条完成
-        await waitForOptimizationComplete();
+        // 停止进度模拟
+        clearInterval(progressInterval);
+
+        // 确保进度达到100%
+        await completeOptimizeProgress();
 
         // 传递结果给父组件
         emit('form-change', result);
@@ -411,6 +415,9 @@ const startOptimization = async () => {
     } catch (error) {
         console.error('调用优化接口失败:', error);
 
+        // 停止进度模拟
+        clearInterval(progressInterval);
+
         // 停止loading
         isOptimizing.value = false;
 
@@ -419,24 +426,47 @@ const startOptimization = async () => {
     }
 };
 
-// 模拟优化进度
-const simulateOptimization = () => {
+// 真实优化进度模拟（基于实际请求时间）
+const simulateRealOptimizeProgress = (startTime: number) => {
     let currentStageIndex = 0;
     optimizeStages.value[0].active = true;
     optimizeStage.value = optimizeStages.value[0].title;
 
     const interval = setInterval(() => {
         if (!isOptimizing.value) {
-            clearInterval(interval);
             return;
         }
 
-        optimizeProgress.value += 100 / (OPTIMIZE_DURATION / 100);
-        estimatedTime.value = Math.ceil(
-            ((100 - optimizeProgress.value) / 100) * (OPTIMIZE_DURATION / 1000)
-        );
+        const elapsed = Date.now() - startTime;
 
-        // 更新阶段
+        // 优化过程可能更耗时，使用更保守的进度曲线
+        let progress: number;
+        if (elapsed < 2000) {
+            // 前2秒：0-30%（参数验证快）
+            progress = (elapsed / 2000) * 30;
+        } else if (elapsed < 5000) {
+            // 2-5秒：30-55%（基准计算）
+            progress = 30 + ((elapsed - 2000) / 3000) * 25;
+        } else if (elapsed < 15000) {
+            // 5-15秒：55-85%（智能优化主要阶段）
+            progress = 55 + ((elapsed - 5000) / 10000) * 30;
+        } else if (elapsed < 40000) {
+            // 15-40秒：85-92%
+            progress = 85 + ((elapsed - 15000) / 25000) * 7;
+        } else {
+            // 40秒后：92-95%，几乎不动
+            progress = 92 + Math.min(((elapsed - 40000) / 80000) * 3, 3);
+        }
+
+        optimizeProgress.value = Math.min(progress, 95);
+
+        // 动态估算剩余时间
+        if (elapsed > 2000 && progress > 10) {
+            const estimatedTotal = (elapsed / progress) * 100;
+            estimatedTime.value = Math.ceil((estimatedTotal - elapsed) / 1000);
+        }
+
+        // 更新阶段（基于进度）
         const targetStage = Math.floor(
             (optimizeProgress.value / 100) * optimizeStages.value.length
         );
@@ -447,29 +477,38 @@ const simulateOptimization = () => {
             optimizeStages.value[currentStageIndex].active = true;
             optimizeStage.value = optimizeStages.value[currentStageIndex].title;
         }
+    }, 200);
 
-        if (optimizeProgress.value >= 100) {
-            clearInterval(interval);
-            optimizeStages.value[currentStageIndex].active = false;
-            optimizeStages.value[currentStageIndex].completed = true;
-            optimizeProgress.value = 100;
-            estimatedTime.value = 0;
-        }
-    }, 100);
+    return interval;
 };
 
-// 等待优化完成
-const waitForOptimizationComplete = (): Promise<void> => {
+// 完成优化进度（确保到达100%）
+const completeOptimizeProgress = (): Promise<void> => {
     return new Promise((resolve) => {
-        const checkComplete = setInterval(() => {
-            if (optimizeProgress.value >= 100) {
-                clearInterval(checkComplete);
+        // 快速完成剩余进度
+        const completeInterval = setInterval(() => {
+            if (optimizeProgress.value < 100) {
+                optimizeProgress.value += (100 - optimizeProgress.value) * 0.3;
+                if (optimizeProgress.value > 99.5) {
+                    optimizeProgress.value = 100;
+                }
+            } else {
+                clearInterval(completeInterval);
+
+                // 完成所有阶段
+                optimizeStages.value.forEach((stage) => {
+                    stage.active = false;
+                    stage.completed = true;
+                });
+
+                estimatedTime.value = 0;
+
                 setTimeout(() => {
                     isOptimizing.value = false;
                     resolve();
                 }, 500);
             }
-        }, 100);
+        }, 50);
     });
 };
 
@@ -483,6 +522,22 @@ const getProgressColor = (progress: number) => {
 </script>
 
 <style lang="scss" scoped>
-// 样式与Step1保持一致
-</style>
+// 加载动画容器样式
+.loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
+// 进度条增强样式
+.progress-bar-enhanced {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    .progress-text {
+        color: white !important;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        font-weight: 700;
+        font-size: 14px;
+    }
+}
+</style>
