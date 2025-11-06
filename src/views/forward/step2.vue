@@ -6,14 +6,6 @@
                 <v-btn variant="text" prepend-icon="mdi-arrow-left" @click="goBack" class="mr-2">
                     返回调整
                 </v-btn>
-                <v-btn
-                    variant="tonal"
-                    color="success"
-                    prepend-icon="mdi-download"
-                    @click="handleExport"
-                >
-                    导出报告
-                </v-btn>
             </div>
         </v-card-title>
         <v-divider></v-divider>
