@@ -208,35 +208,35 @@ const handleUploadResults = (data: any) => {
             cement: {
                 insoluble_matter_percent: Math.random() * 1.5,
                 magnesium_oxide_percent: Math.random() * 5.0,
-                sulfur_trioxide_percent: Math.random() * 4.0
+                sulfur_trioxide_percent: Math.random() * 4.0,
             },
             fly_ash: {
                 loss_on_ignition_percent: Math.random() * (5.0 * 0.2) + 5.0 * 0.8,
                 moisture_content_percent: Math.random() * (1.0 * 0.2) + 1.0 * 0.8,
-                sulfur_trioxide_percent: Math.random() * (3.0 * 0.2) + 3.0 * 0.8
+                sulfur_trioxide_percent: Math.random() * (3.0 * 0.2) + 3.0 * 0.8,
             },
             blast_furnace_slag: {
                 sulfur_trioxide_percent: Math.random() * (4.0 * 0.2) + 4.0 * 0.8,
-                chloride_ion_percent: Math.random() * (0.06 * 0.2) + 0.06 * 0.8
+                chloride_ion_percent: Math.random() * (0.06 * 0.2) + 0.06 * 0.8,
             },
             water: {
                 ph_value: Math.random() * (4.5 * 0.2) + 4.5 * 0.8,
-                insoluble_matter_mg_per_L: Math.random() * (2000 * 0.2) + 2000 * 0.8
+                insoluble_matter_mg_per_L: Math.random() * (2000 * 0.2) + 2000 * 0.8,
             },
             superplasticizer: {
                 moisture_content_percent_powder: Math.random() * (5.0 * 0.2) + 5.0 * 0.8,
                 density_tolerance_g_per_cm3: Math.random() * (0.03 * 0.2) + 0.03 * 0.8,
-                chloride_ion_percent: Math.random() * (0.20 * 0.2) + 0.20 * 0.8
+                chloride_ion_percent: Math.random() * (0.2 * 0.2) + 0.2 * 0.8,
             },
             coarse_aggregate: {
                 flaky_elongated_particles_percent: Math.random() * (15.0 * 0.2) + 15.0 * 0.8,
                 clay_content_percent: Math.random() * (2.0 * 0.2) + 2.0 * 0.8,
-                crushing_value_percent: Math.random() * (10.0 * 0.2) + 10.0 * 0.8
+                crushing_value_percent: Math.random() * (10.0 * 0.2) + 10.0 * 0.8,
             },
             fine_aggregate: {
                 clay_content_percent: Math.random() * (3.0 * 0.2) + 3.0 * 0.8,
                 mica_content_percent: Math.random() * (2.0 * 0.2) + 2.0 * 0.8,
-                chloride_ion_percent: Math.random() * (0.02 * 0.2) + 0.02 * 0.8
+                chloride_ion_percent: Math.random() * (0.02 * 0.2) + 0.02 * 0.8,
             },
         };
 
@@ -251,7 +251,7 @@ const handleUploadResults = (data: any) => {
 const handleConfirmAndProceed = () => {
     if (pendingDetectionData.value) {
         // 应用数据
-        concreteStore.updateConcreteData(pendingDetectionData.value);
+        concreteStore.setConcreteData(pendingDetectionData.value);
         console.log('已应用检测结果数据');
 
         // 关闭对话框
