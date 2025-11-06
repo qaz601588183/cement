@@ -3,13 +3,13 @@
         <v-card>
             <!-- Tabs 切换 -->
             <v-tabs v-model="activeTab">
-                <v-tab value="forward">
-                    <v-icon class="mr-2">mdi-chart-line</v-icon>
-                    正向推演
-                </v-tab>
                 <v-tab value="reverse">
                     <v-icon class="mr-2">mdi-auto-fix</v-icon>
                     反向推演
+                </v-tab>
+                <v-tab value="forward">
+                    <v-icon class="mr-2">mdi-chart-line</v-icon>
+                    正向推演
                 </v-tab>
             </v-tabs>
 
