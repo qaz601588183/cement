@@ -22,23 +22,6 @@ export interface ConcreteData {
     // 配合比参数
     mixProportionParams: MixProportionParams;
 
-    // 可选的基本信息
-    reportNumber?: string;
-    reportType?: string;
-    projectName?: string;
-    testDate?: string;
-    strength_grade?: string;
-    actual_strength?: number;
-    cement_type?: string;
-    cement_fineness?: string;
-    water_cement_ratio?: number;
-    aggregate_info?: string;
-    admixture?: string;
-    curing_condition?: string;
-    curing_age?: string;
-    test_method?: string;
-    conclusion?: string;
-    filename?: string;
     // 可以添加其他需要的字段
     [key: string]: any;
 }
