@@ -8,20 +8,41 @@
 
             <v-card-text>
                 <!-- 搜索框 -->
-                <v-text-field v-model="searchQuery" prepend-inner-icon="mdi-magnify" label="搜索样品编号或名称"
-                    variant="outlined" density="comfortable" clearable class="mb-4"></v-text-field>
+                <v-text-field
+                    v-model="searchQuery"
+                    prepend-inner-icon="mdi-magnify"
+                    label="搜索样品编号或名称"
+                    variant="outlined"
+                    density="comfortable"
+                    clearable
+                    class="mb-4"
+                ></v-text-field>
 
                 <!-- 样品列表 -->
-                <v-data-table :headers="sampleHeaders" :items="filteredSamples" :items-per-page="10" class="elevation-1"
-                    item-value="id">
+                <v-data-table
+                    :headers="sampleHeaders"
+                    :items="filteredSamples"
+                    :items-per-page="10"
+                    class="elevation-1"
+                    item-value="id"
+                >
                     <template v-slot:item.status="{ item }">
-                        <v-chip :color="item.isSubsampled ? 'success' : 'warning'" size="small" variant="flat">
+                        <v-chip
+                            :color="item.isSubsampled ? 'success' : 'warning'"
+                            size="small"
+                            variant="flat"
+                        >
                             {{ item.isSubsampled ? '已缩分' : '未缩分' }}
                         </v-chip>
                     </template>
                     <template v-slot:item.actions="{ item }">
-                        <v-btn :color="item.isSubsampled ? 'primary' : 'grey'" size="small" @click="startDetection(item)"
-                            :disabled="!item.isSubsampled" variant="flat">
+                        <v-btn
+                            :color="item.isSubsampled ? 'primary' : 'grey'"
+                            size="small"
+                            @click="startDetection(item)"
+                            :disabled="!item.isSubsampled"
+                            variant="flat"
+                        >
                             {{ item.isSubsampled ? '开始实验' : '不可操作' }}
                         </v-btn>
                     </template>
@@ -32,7 +53,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { computed, ref } from 'vue';
 
 // 类型定义
 interface Sample {
@@ -44,7 +65,7 @@ interface Sample {
 
 // 定义事件
 const emit = defineEmits<{
-    (e: 'start-detection', sample: Sample): void
+    (e: 'start-detection', sample: Sample): void;
 }>();
 
 // 样品数据
@@ -73,9 +94,8 @@ const filteredSamples = computed(() => {
     if (!searchQuery.value) return samples.value;
     const query = searchQuery.value.toLowerCase();
     return samples.value.filter(
-        sample =>
-            sample.code.toLowerCase().includes(query) ||
-            sample.name.toLowerCase().includes(query)
+        (sample) =>
+            sample.code.toLowerCase().includes(query) || sample.name.toLowerCase().includes(query)
     );
 });
 
@@ -92,4 +112,3 @@ const startDetection = (sample: Sample) => {
     padding: 16px;
 }
 </style>
-
