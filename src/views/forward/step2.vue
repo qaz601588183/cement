@@ -3,12 +3,7 @@
         <v-card-title class="d-flex justify-space-between align-center">
             <span class="text-h6">混凝土强度预测分析报告</span>
             <div>
-                <v-btn
-                    variant="text"
-                    prepend-icon="mdi-arrow-left"
-                    @click="emit('back')"
-                    class="mr-2"
-                >
+                <v-btn variant="text" prepend-icon="mdi-arrow-left" @click="goBack" class="mr-2">
                     返回调整
                 </v-btn>
                 <v-btn
@@ -177,18 +172,15 @@
 </template>
 
 <script setup lang="ts">
+import { useConcreteStore } from '@/stores/useConcreteStore';
 import type { EChartsOption } from 'echarts';
 import * as echarts from 'echarts';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
-const props = defineProps<{
-    data: any;
-}>();
-
-const emit = defineEmits<{
-    back: [];
-    export: [];
-}>();
+// 获取store和router
+const concreteStore = useConcreteStore();
+const router = useRouter();
 
 // ECharts实例引用
 const factorWeightChartRef = ref<HTMLDivElement>();
@@ -201,12 +193,12 @@ let confidenceChart: echarts.ECharts | null = null;
 let radarChart: echarts.ECharts | null = null;
 let paramDistributionChart: echarts.ECharts | null = null;
 
-// 获取API返回结果（直接就是props.data）
-const apiResult = computed(() => props.data || {});
+// 获取API返回结果（从store读取）
+const apiResult = computed(() => concreteStore.forwardData?.analysisResult || {});
 
-// 配合比参数（从mixProportionParams或从interpretation中提取）
+// 配合比参数（从store读取）
 const mixParams = computed(() => {
-    const params = props.data?.mixProportionParams || {};
+    const params = concreteStore.forwardData?.mixProportionParams || {};
     return {
         cement: {
             label: '水泥',
@@ -315,10 +307,15 @@ const getOptimizationSuggestions = () => {
     return suggestions;
 };
 
+// 返回上一步
+const goBack = () => {
+    router.push('/concrete-design/forward-step1');
+};
+
 // 导出报告
 const handleExport = () => {
-    console.log('导出报告', props.data);
-    emit('export');
+    console.log('导出报告', apiResult.value);
+    // 这里可以添加实际的导出逻辑
 };
 
 // 初始化因素权重图表（横向柱状图）
@@ -499,7 +496,7 @@ const initRadarChart = () => {
 
     radarChart = echarts.init(radarChartRef.value);
 
-    const params = props.data?.mixProportionParams || {};
+    const params = concreteStore.forwardData?.mixProportionParams || {};
 
     // 定义各参数的合理范围（用于归一化）
     const ranges = {
@@ -585,7 +582,7 @@ const initParamDistributionChart = () => {
 
     paramDistributionChart = echarts.init(paramDistributionChartRef.value);
 
-    const params = props.data?.mixProportionParams || {};
+    const params = concreteStore.forwardData?.mixProportionParams || {};
     const similarSamples = apiResult.value.similar_samples || [];
 
     // 准备数据：当前配比 vs 相似样本平均值
