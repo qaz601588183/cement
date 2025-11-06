@@ -21,9 +21,8 @@ declare module 'axios' {
  * @tutorial see more:https://github.com/onlyling/some-demo/tree/master/typescript-width-axios
  */
 const request = Axios.create({
-    baseURL: import.meta.env.VITE_API,
-    // baseURL: 'https://apifoxmock.com/m1/5061937-4723200-default',
-    // baseURL: 'http://localhost:8085',
+    // 生产环境用/api
+    baseURL: import.meta.env.PROD ? import.meta.env.VITE_API : '/api',
     timeout: 300000, // 5分钟超时
 });
 
