@@ -59,6 +59,17 @@
                 </v-window-item>
             </v-window>
         </v-card>
+
+        <!-- 成功提示 Snackbar -->
+        <v-snackbar v-model="showSnackbar" :timeout="4000" color="success" location="top">
+            <div class="d-flex align-center">
+                <v-icon class="mr-2">mdi-check-circle</v-icon>
+                <span>{{ snackbarMessage }}</span>
+            </div>
+            <template v-slot:actions>
+                <v-btn variant="text" @click="showSnackbar = false">关闭</v-btn>
+            </template>
+        </v-snackbar>
     </div>
 </template>
 
@@ -79,6 +90,10 @@ const concreteStore = useConcreteStore();
 
 // Tab 控制
 const activeTab = ref('forward');
+
+// Snackbar 状态
+const showSnackbar = ref(false);
+const snackbarMessage = ref('');
 
 // ========== 正向推演状态 ==========
 const forwardStep = ref(1);
@@ -148,8 +163,6 @@ const goToReverseResult = () => {
 
 // 反向推演：应用优化结果
 const handleApplyOptimization = (optimizedConfig: any) => {
-    console.log('应用优化配置到正向推演:', optimizedConfig);
-
     // 将优化后的配置应用到正向推演
     forwardData.value = {
         mixProportionParams: {
@@ -168,8 +181,9 @@ const handleApplyOptimization = (optimizedConfig: any) => {
     activeTab.value = 'forward';
     forwardStep.value = 1;
 
-    // 提示用户
-    alert('优化配置已应用到正向推演，请点击"生成分析报告"进行验证');
+    // 显示成功提示
+    snackbarMessage.value = '✨ 优化配置已成功应用到正向推演！请点击"生成分析报告"进行验证';
+    showSnackbar.value = true;
 };
 
 // 监听store数据变化，自动加载数据（仅影响正向推演）
@@ -203,4 +217,3 @@ onMounted(() => {
     // 样式可以根据需要添加
 }
 </style>
-

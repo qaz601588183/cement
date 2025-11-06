@@ -29,22 +29,30 @@
 }
 .shadowCard {
     .v-card {
-        box-shadow: rgba(146, 158, 171, 0.302) 0 0 2px,rgba(145, 158, 171, 0.122) 0 12px 24px -4px;
+        box-shadow:
+            rgba(146, 158, 171, 0.302) 0 0 2px,
+            rgba(145, 158, 171, 0.122) 0 12px 24px -4px;
         &.elevation-0 {
             box-shadow: none;
         }
     }
     .layout_navigation {
-        box-shadow: rgba(146, 158, 171, 0.302) 0 0 2px,rgba(145, 158, 171, 0.122) 0 12px 24px -4px;
+        box-shadow:
+            rgba(146, 158, 171, 0.302) 0 0 2px,
+            rgba(145, 158, 171, 0.122) 0 12px 24px -4px;
         &.elevation-0 {
             box-shadow: none;
         }
     }
 }
 
-.v-menu > .v-overlay__content > .v-card, .v-menu > .v-overlay__content > .v-sheet, .v-menu > .v-overlay__content > .v-list {
+.v-menu > .v-overlay__content > .v-card,
+.v-menu > .v-overlay__content > .v-sheet,
+.v-menu > .v-overlay__content > .v-list {
     border-radius: 6px !important;
-    box-shadow: rgba(146, 158, 171, 0.302) 0 0 2px,rgba(145, 158, 171, 0.122) 0 12px 24px -4px !important;
+    box-shadow:
+        rgba(146, 158, 171, 0.302) 0 0 2px,
+        rgba(145, 158, 171, 0.122) 0 12px 24px -4px !important;
 }
 .borderCard {
     .v-card {
@@ -68,3 +76,30 @@
     }
 }
 
+// 修复 Vuetify 输入框 label 颜色过浅的问题
+.v-field--variant-outlined .v-label,
+.v-field--variant-filled .v-label,
+.v-field--variant-underlined .v-label,
+.v-field--variant-solo .v-label,
+.v-field--variant-solo-filled .v-label,
+.v-field--variant-solo-inverted .v-label,
+.v-field--variant-plain .v-label {
+    opacity: 1 !important;
+    color: rgba(var(--v-theme-on-surface), 0.87) !important;
+}
+
+// 聚焦状态的 label 颜色
+.v-field--focused .v-label {
+    color: rgb(var(--v-theme-primary)) !important;
+}
+
+// 错误状态的 label 颜色
+.v-field--error .v-label {
+    color: rgb(var(--v-theme-error)) !important;
+}
+
+// disabled 状态的 label 颜色
+.v-field--disabled .v-label {
+    opacity: 0.38 !important;
+    color: rgba(var(--v-theme-on-surface), 0.38) !important;
+}

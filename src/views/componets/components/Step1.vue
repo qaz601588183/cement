@@ -463,30 +463,6 @@
 
                     <!-- 计算指标显示 -->
                     <v-divider class="my-6"></v-divider>
-                    <v-row>
-                        <v-col cols="12" md="4">
-                            <v-card variant="tonal" class="pa-3">
-                                <div class="text-caption text-grey-darken-2">水灰比 (W/C)</div>
-                                <div class="text-h5 font-weight-bold">
-                                    {{ waterCementRatio }}
-                                </div>
-                            </v-card>
-                        </v-col>
-                        <v-col cols="12" md="4">
-                            <v-card variant="tonal" color="success" class="pa-3">
-                                <div class="text-caption text-grey-darken-2">胶凝材料总量</div>
-                                <div class="text-h5 font-weight-bold">
-                                    {{ totalCementitious }} kg/m³
-                                </div>
-                            </v-card>
-                        </v-col>
-                        <v-col cols="12" md="4">
-                            <v-card variant="tonal" color="warning" class="pa-3">
-                                <div class="text-caption text-grey-darken-2">砂率</div>
-                                <div class="text-h5 font-weight-bold">{{ sandRatio }}%</div>
-                            </v-card>
-                        </v-col>
-                    </v-row>
 
                     <!-- 强度预测卡片 -->
                     <v-row>
@@ -497,21 +473,6 @@
                                 color="primary"
                                 variant="tonal"
                             >
-                                <v-card-text>
-                                    <div class="text-subtitle-2 mb-2">
-                                        <v-icon size="small" class="mr-1">mdi-brain</v-icon>
-                                        AI推演预测强度
-                                    </div>
-                                    <div class="d-flex align-center">
-                                        <v-icon size="large" class="mr-3">mdi-chart-line</v-icon>
-                                        <div>
-                                            <div class="text-h4 font-weight-bold">
-                                                {{ predictedStrength }}
-                                            </div>
-                                            <div class="text-caption">MPa</div>
-                                        </div>
-                                    </div>
-                                </v-card-text>
                             </v-card>
                         </v-col>
                     </v-row>
@@ -540,6 +501,14 @@ import PredictAPI, { type PredictRequest } from '@/api/predict';
 import { useConcreteStore, type MixProportionParams } from '@/stores/useConcreteStore';
 import { calculateConcreteStrength, type ConcreteParameters } from '@/utils/concreteStrengthModel';
 import { computed, onMounted, ref, watch } from 'vue';
+
+// 定义 props
+const props = defineProps<{
+    formData?: {
+        mixProportionParams?: MixProportionParams;
+        [key: string]: any;
+    };
+}>();
 
 const emit = defineEmits<{
     back: [];
@@ -922,6 +891,34 @@ watch(
         }
     },
     { deep: true }
+);
+
+// 监听 store 数据变化，实时更新参数（解决tab切换时的初始化问题）
+watch(
+    () => concreteStore.concreteData,
+    (newData) => {
+        if (newData && newData.mixProportionParams) {
+            editableParams.value = { ...newData.mixProportionParams };
+            console.log('从store更新参数（watch）:', editableParams.value);
+            // 清除预设选中状态
+            selectedPreset.value = null;
+        }
+    },
+    { deep: true, immediate: true }
+);
+
+// 监听 props 的 formData 变化，实时更新参数（来自父组件的数据）
+watch(
+    () => props.formData,
+    (newFormData) => {
+        if (newFormData && newFormData.mixProportionParams) {
+            editableParams.value = { ...newFormData.mixProportionParams };
+            console.log('从props更新参数:', editableParams.value);
+            // 清除预设选中状态
+            selectedPreset.value = null;
+        }
+    },
+    { deep: true, immediate: true }
 );
 
 onMounted(() => {

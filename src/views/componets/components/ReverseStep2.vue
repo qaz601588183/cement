@@ -16,6 +16,19 @@
         <v-divider></v-divider>
 
         <v-card-text class="pa-6">
+            <!-- 优化建议 -->
+            <v-card class="mb-6">
+                <v-card-title>
+                    <v-icon class="mr-2">mdi-lightbulb-on-outline</v-icon>
+                    优化建议
+                </v-card-title>
+                <v-card-text class="pa-4">
+                    <div class="text-body-1" style="white-space: pre-line">
+                        {{ optimizeResult.recommendations || '暂无建议' }}
+                    </div>
+                </v-card-text>
+            </v-card>
+
             <!-- 强度优化对比图表 -->
             <v-card class="mb-6">
                 <v-card-text>
@@ -43,29 +56,6 @@
                     <div ref="radarChartRef" style="width: 100%; height: 500px"></div>
                 </v-card-text>
             </v-card>
-
-            <!-- 成分占比对比 -->
-            <v-row class="mb-6">
-                <v-col cols="12" md="6">
-                    <v-card>
-                        <v-card-title class="text-center">基准配比成分占比</v-card-title>
-                        <v-card-text>
-                            <div ref="basePieChartRef" style="width: 100%; height: 400px"></div>
-                        </v-card-text>
-                    </v-card>
-                </v-col>
-                <v-col cols="12" md="6">
-                    <v-card>
-                        <v-card-title class="text-center">优化配比成分占比</v-card-title>
-                        <v-card-text>
-                            <div
-                                ref="optimizedPieChartRef"
-                                style="width: 100%; height: 400px"
-                            ></div>
-                        </v-card-text>
-                    </v-card>
-                </v-col>
-            </v-row>
 
             <!-- 详细数据对比表格 -->
             <v-card class="mb-6">
@@ -135,19 +125,6 @@
                 </v-card-text>
             </v-card>
 
-            <!-- 优化建议 -->
-            <v-card class="mb-6">
-                <v-card-title>
-                    <v-icon class="mr-2">mdi-lightbulb-on-outline</v-icon>
-                    优化建议
-                </v-card-title>
-                <v-card-text class="pa-4">
-                    <div class="text-body-1" style="white-space: pre-line">
-                        {{ optimizeResult.recommendations || '暂无建议' }}
-                    </div>
-                </v-card-text>
-            </v-card>
-
             <!-- 操作按钮 -->
             <div class="d-flex justify-space-between mt-6">
                 <v-btn
@@ -158,12 +135,53 @@
                 >
                     返回修改参数
                 </v-btn>
-                <v-btn color="primary" prepend-icon="mdi-check-circle" @click="applyOptimization">
+                <v-btn color="primary" prepend-icon="mdi-check-circle" @click="showConfirmDialog">
                     应用此优化方案
                 </v-btn>
             </div>
         </v-card-text>
     </v-card>
+
+    <!-- 确认对话框 -->
+    <v-dialog v-model="confirmDialog" max-width="500">
+        <v-card>
+            <v-card-title class="d-flex align-center bg-primary">
+                <v-icon class="mr-2">mdi-help-circle</v-icon>
+                <span>确认应用优化方案</span>
+            </v-card-title>
+
+            <v-card-text class="pt-6">
+                <v-alert type="info" variant="tonal" class="mb-4">
+                    <v-icon class="mr-2">mdi-information</v-icon>
+                    应用此优化方案后，将自动跳转到<strong>正向推演</strong>页面，并使用优化后的配合比参数进行验证。
+                </v-alert>
+
+                <div class="text-body-1">
+                    <div class="mb-3">
+                        <strong>优化后的强度：</strong>
+                        <span class="text-h6 text-primary ml-2">
+                            {{ formatValue(optimizeResult.predicted_strength) }} MPa
+                        </span>
+                    </div>
+                    <div>
+                        <strong>强度提升：</strong>
+                        <span class="text-h6 text-success ml-2">
+                            +{{ formatValue(optimizeResult.improvement_percent) }}%
+                        </span>
+                    </div>
+                </div>
+            </v-card-text>
+
+            <v-card-actions class="px-6 pb-4">
+                <v-spacer></v-spacer>
+                <v-btn color="grey" variant="text" @click="confirmDialog = false"> 取消 </v-btn>
+                <v-btn color="primary" variant="flat" @click="applyOptimization">
+                    <v-icon class="mr-1">mdi-check</v-icon>
+                    确认应用
+                </v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
 </template>
 
 <script setup lang="ts">
@@ -188,18 +206,17 @@ const strengthComparisonChartRef = ref<HTMLDivElement>();
 const paramComparisonChartRef = ref<HTMLDivElement>();
 const adjustmentDetailsChartRef = ref<HTMLDivElement>();
 const radarChartRef = ref<HTMLDivElement>();
-const basePieChartRef = ref<HTMLDivElement>();
-const optimizedPieChartRef = ref<HTMLDivElement>();
 
 let strengthComparisonChart: echarts.ECharts | null = null;
 let paramComparisonChart: echarts.ECharts | null = null;
 let adjustmentDetailsChart: echarts.ECharts | null = null;
 let radarChart: echarts.ECharts | null = null;
-let basePieChart: echarts.ECharts | null = null;
-let optimizedPieChart: echarts.ECharts | null = null;
 
 // 优化结果
 const optimizeResult = computed(() => props.data);
+
+// 确认对话框状态
+const confirmDialog = ref(false);
 
 // 参数标签映射
 const paramLabels: Record<string, { label: string; unit: string; icon: string }> = {
@@ -275,11 +292,20 @@ const getChangeClass = (key: string): string => {
     return '';
 };
 
+// 显示确认对话框
+const showConfirmDialog = () => {
+    confirmDialog.value = true;
+};
+
 // 应用优化
 const applyOptimization = () => {
     console.log('应用优化方案:', optimizeResult.value.optimized_config);
+
+    // 关闭对话框
+    confirmDialog.value = false;
+
+    // 发送apply事件给父组件，父组件会处理跳转到正向推演
     emit('apply', optimizeResult.value.optimized_config);
-    // 可以跳转到正向推演，使用优化后的配比进行验证
 };
 
 // 初始化强度对比图表
@@ -506,7 +532,10 @@ const initAdjustmentDetailsChart = () => {
 
     if (adjustments.length === 0) return;
 
-    const names = adjustments.map((adj: any) => paramLabels[adj.factor]?.label || adj.factor);
+    // 直接使用API返回的中文名称，如果没有则通过paramLabels查找
+    const names = adjustments.map(
+        (adj: any) => adj.name || paramLabels[adj.factor]?.label || adj.factor
+    );
     const changes = adjustments.map((adj: any) => adj.change || 0);
     const changePercents = adjustments.map((adj: any) => adj.change_percent || 0);
 
@@ -682,122 +711,6 @@ const initRadarChart = () => {
     radarChart.setOption(option);
 };
 
-// 初始化基准配比饼图
-const initBasePieChart = () => {
-    if (!basePieChartRef.value) return;
-
-    basePieChart = echarts.init(basePieChartRef.value);
-
-    const base = optimizeResult.value.base_config || {};
-
-    const data = [
-        { value: base.cement || 0, name: '水泥' },
-        { value: base.blast_furnace_slag || 0, name: '高炉矿渣' },
-        { value: base.fly_ash || 0, name: '粉煤灰' },
-        { value: base.water || 0, name: '水' },
-        { value: base.superplasticizer || 0, name: '减水剂' },
-        { value: base.coarse_aggregate || 0, name: '粗骨料' },
-        { value: base.fine_aggregate || 0, name: '细骨料' },
-    ].filter((item) => item.value > 0); // 过滤掉值为0的项
-
-    const option: EChartsOption = {
-        tooltip: {
-            trigger: 'item',
-            formatter: '{a} <br/>{b}: {c} kg/m³ ({d}%)',
-        },
-        legend: {
-            orient: 'vertical',
-            left: 'left',
-            top: 'middle',
-        },
-        series: [
-            {
-                name: '基准配比',
-                type: 'pie',
-                radius: ['40%', '70%'],
-                avoidLabelOverlap: false,
-                itemStyle: {
-                    borderRadius: 10,
-                    borderColor: '#fff',
-                    borderWidth: 2,
-                },
-                label: {
-                    show: true,
-                    formatter: '{b}\n{d}%',
-                },
-                emphasis: {
-                    label: {
-                        show: true,
-                        fontSize: 14,
-                        fontWeight: 'bold',
-                    },
-                },
-                data: data,
-            },
-        ],
-    };
-
-    basePieChart.setOption(option);
-};
-
-// 初始化优化配比饼图
-const initOptimizedPieChart = () => {
-    if (!optimizedPieChartRef.value) return;
-
-    optimizedPieChart = echarts.init(optimizedPieChartRef.value);
-
-    const optimized = optimizeResult.value.optimized_config || {};
-
-    const data = [
-        { value: optimized.cement || 0, name: '水泥' },
-        { value: optimized.blast_furnace_slag || 0, name: '高炉矿渣' },
-        { value: optimized.fly_ash || 0, name: '粉煤灰' },
-        { value: optimized.water || 0, name: '水' },
-        { value: optimized.superplasticizer || 0, name: '减水剂' },
-        { value: optimized.coarse_aggregate || 0, name: '粗骨料' },
-        { value: optimized.fine_aggregate || 0, name: '细骨料' },
-    ].filter((item) => item.value > 0); // 过滤掉值为0的项
-
-    const option: EChartsOption = {
-        tooltip: {
-            trigger: 'item',
-            formatter: '{a} <br/>{b}: {c} kg/m³ ({d}%)',
-        },
-        legend: {
-            orient: 'vertical',
-            left: 'left',
-            top: 'middle',
-        },
-        series: [
-            {
-                name: '优化配比',
-                type: 'pie',
-                radius: ['40%', '70%'],
-                avoidLabelOverlap: false,
-                itemStyle: {
-                    borderRadius: 10,
-                    borderColor: '#fff',
-                    borderWidth: 2,
-                },
-                label: {
-                    show: true,
-                    formatter: '{b}\n{d}%',
-                },
-                emphasis: {
-                    label: {
-                        show: true,
-                        fontSize: 14,
-                        fontWeight: 'bold',
-                    },
-                },
-                data: data,
-            },
-        ],
-    };
-
-    optimizedPieChart.setOption(option);
-};
-
 // 初始化所有图表
 const initAllCharts = async () => {
     await nextTick();
@@ -805,8 +718,6 @@ const initAllCharts = async () => {
     initParamComparisonChart();
     initAdjustmentDetailsChart();
     initRadarChart();
-    initBasePieChart();
-    initOptimizedPieChart();
 };
 
 // 窗口resize时重新调整图表大小
@@ -815,8 +726,6 @@ const handleResize = () => {
     paramComparisonChart?.resize();
     adjustmentDetailsChart?.resize();
     radarChart?.resize();
-    basePieChart?.resize();
-    optimizedPieChart?.resize();
 };
 
 // 生命周期
@@ -831,8 +740,6 @@ onBeforeUnmount(() => {
     paramComparisonChart?.dispose();
     adjustmentDetailsChart?.dispose();
     radarChart?.dispose();
-    basePieChart?.dispose();
-    optimizedPieChart?.dispose();
     window.removeEventListener('resize', handleResize);
 });
 </script>

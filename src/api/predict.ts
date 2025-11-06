@@ -178,10 +178,17 @@ export interface OptimizeRequest {
  * 调整详情
  */
 export interface Adjustment {
+    /** 参数英文名 */
     factor: string;
+    /** 参数中文名 */
+    name: string;
+    /** 原始值 */
     original_value: number;
+    /** 优化后的值 */
     optimized_value: number;
+    /** 变化量 */
     change: number;
+    /** 变化百分比 */
     change_percent: number;
     [key: string]: any;
 }

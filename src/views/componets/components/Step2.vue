@@ -51,6 +51,28 @@
                 </v-col>
             </v-row>
 
+            <!-- 智能优化建议 -->
+            <v-card class="mb-6">
+                <v-card-title>
+                    <v-icon class="mr-2">mdi-lightbulb-outline</v-icon>
+                    智能优化建议
+                </v-card-title>
+                <v-card-text>
+                    <v-list>
+                        <v-list-item
+                            v-for="(suggestion, index) in getOptimizationSuggestions()"
+                            :key="index"
+                            :prepend-icon="suggestion.icon"
+                        >
+                            <v-list-item-title>{{ suggestion.title }}</v-list-item-title>
+                            <v-list-item-subtitle>{{
+                                suggestion.description
+                            }}</v-list-item-subtitle>
+                        </v-list-item>
+                    </v-list>
+                </v-card-text>
+            </v-card>
+
             <!-- 配合比参数显示 -->
             <v-card class="mb-6">
                 <v-card-title>
@@ -148,28 +170,6 @@
                             </tr>
                         </tbody>
                     </v-table>
-                </v-card-text>
-            </v-card>
-
-            <!-- 优化建议 -->
-            <v-card>
-                <v-card-title>
-                    <v-icon class="mr-2">mdi-lightbulb-outline</v-icon>
-                    智能优化建议
-                </v-card-title>
-                <v-card-text>
-                    <v-list>
-                        <v-list-item
-                            v-for="(suggestion, index) in getOptimizationSuggestions()"
-                            :key="index"
-                            :prepend-icon="suggestion.icon"
-                        >
-                            <v-list-item-title>{{ suggestion.title }}</v-list-item-title>
-                            <v-list-item-subtitle>{{
-                                suggestion.description
-                            }}</v-list-item-subtitle>
-                        </v-list-item>
-                    </v-list>
                 </v-card-text>
             </v-card>
         </v-card-text>

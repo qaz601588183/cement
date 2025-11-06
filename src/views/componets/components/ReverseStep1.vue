@@ -135,97 +135,316 @@
                 </v-card-title>
                 <v-card-text class="pa-6">
                     <v-row>
+                        <!-- 参数1: 水泥用量 -->
                         <v-col cols="12" md="6">
-                            <v-text-field
-                                v-model.number="baseConfig.cement"
-                                label="水泥用量"
-                                suffix="kg/m³"
-                                type="number"
-                                variant="outlined"
-                                :rules="[(v) => !!v || '必填']"
-                            ></v-text-field>
+                            <v-card variant="outlined" class="pa-4 param-card">
+                                <div class="d-flex align-center justify-space-between mb-3">
+                                    <div class="d-flex align-center">
+                                        <v-icon color="primary" class="mr-2"
+                                            >mdi-package-variant-closed</v-icon
+                                        >
+                                        <span class="text-subtitle-1 font-weight-bold"
+                                            >水泥用量</span
+                                        >
+                                    </div>
+                                    <v-chip size="x-small" color="primary" variant="flat">C</v-chip>
+                                </div>
+                                <div class="text-h5 text-center mb-2 font-weight-bold text-primary">
+                                    {{ baseConfig.cement }} kg/m³
+                                </div>
+                                <v-slider
+                                    v-model="baseConfig.cement"
+                                    :min="200"
+                                    :max="600"
+                                    :step="10"
+                                    color="primary"
+                                    track-color="grey-lighten-2"
+                                    thumb-label
+                                >
+                                    <template v-slot:prepend>
+                                        <v-chip size="x-small">200</v-chip>
+                                    </template>
+                                    <template v-slot:append>
+                                        <v-chip size="x-small">600</v-chip>
+                                    </template>
+                                </v-slider>
+                                <div class="text-caption text-grey text-center">
+                                    <v-icon size="x-small">mdi-lightbulb-outline</v-icon>
+                                    水泥用量直接影响强度
+                                </div>
+                            </v-card>
                         </v-col>
+
+                        <!-- 参数2: 水用量 -->
                         <v-col cols="12" md="6">
-                            <v-text-field
-                                v-model.number="baseConfig.water"
-                                label="水用量"
-                                suffix="kg/m³"
-                                type="number"
-                                variant="outlined"
-                                :rules="[(v) => !!v || '必填']"
-                            ></v-text-field>
+                            <v-card variant="outlined" class="pa-4 param-card">
+                                <div class="d-flex align-center justify-space-between mb-3">
+                                    <div class="d-flex align-center">
+                                        <v-icon color="primary" class="mr-2">mdi-water</v-icon>
+                                        <span class="text-subtitle-1 font-weight-bold">水用量</span>
+                                    </div>
+                                    <v-chip size="x-small" color="primary" variant="flat">W</v-chip>
+                                </div>
+                                <div class="text-h5 text-center mb-2 font-weight-bold text-primary">
+                                    {{ baseConfig.water }} kg/m³
+                                </div>
+                                <v-slider
+                                    v-model="baseConfig.water"
+                                    :min="100"
+                                    :max="250"
+                                    :step="5"
+                                    color="primary"
+                                    track-color="grey-lighten-2"
+                                    thumb-label
+                                >
+                                    <template v-slot:prepend>
+                                        <v-chip size="x-small">100</v-chip>
+                                    </template>
+                                    <template v-slot:append>
+                                        <v-chip size="x-small">250</v-chip>
+                                    </template>
+                                </v-slider>
+                                <div class="text-caption text-grey text-center">
+                                    <v-icon size="x-small">mdi-lightbulb-outline</v-icon>
+                                    水灰比=水/水泥，越低强度越高
+                                </div>
+                            </v-card>
                         </v-col>
+
+                        <!-- 参数3: 高炉矿渣 -->
                         <v-col cols="12" md="6">
-                            <v-text-field
-                                v-model.number="baseConfig.blast_furnace_slag"
-                                label="高炉矿渣"
-                                suffix="kg/m³"
-                                type="number"
-                                variant="outlined"
-                            ></v-text-field>
+                            <v-card variant="outlined" class="pa-4 param-card">
+                                <div class="d-flex align-center justify-space-between mb-3">
+                                    <div class="d-flex align-center">
+                                        <v-icon color="primary" class="mr-2"
+                                            >mdi-cube-outline</v-icon
+                                        >
+                                        <span class="text-subtitle-1 font-weight-bold"
+                                            >高炉矿渣</span
+                                        >
+                                    </div>
+                                    <v-chip size="x-small" color="primary" variant="flat">S</v-chip>
+                                </div>
+                                <div class="text-h5 text-center mb-2 font-weight-bold text-primary">
+                                    {{ baseConfig.blast_furnace_slag }} kg/m³
+                                </div>
+                                <v-slider
+                                    v-model="baseConfig.blast_furnace_slag"
+                                    :min="0"
+                                    :max="200"
+                                    :step="5"
+                                    color="primary"
+                                    track-color="grey-lighten-2"
+                                    thumb-label
+                                >
+                                    <template v-slot:prepend>
+                                        <v-chip size="x-small">0</v-chip>
+                                    </template>
+                                    <template v-slot:append>
+                                        <v-chip size="x-small">200</v-chip>
+                                    </template>
+                                </v-slider>
+                                <div class="text-caption text-grey text-center">
+                                    <v-icon size="x-small">mdi-lightbulb-outline</v-icon>
+                                    后期水化，改善耐久性
+                                </div>
+                            </v-card>
                         </v-col>
+
+                        <!-- 参数4: 粉煤灰 -->
                         <v-col cols="12" md="6">
-                            <v-text-field
-                                v-model.number="baseConfig.fly_ash"
-                                label="粉煤灰"
-                                suffix="kg/m³"
-                                type="number"
-                                variant="outlined"
-                            ></v-text-field>
+                            <v-card variant="outlined" class="pa-4 param-card">
+                                <div class="d-flex align-center justify-space-between mb-3">
+                                    <div class="d-flex align-center">
+                                        <v-icon color="primary" class="mr-2">mdi-grain</v-icon>
+                                        <span class="text-subtitle-1 font-weight-bold">粉煤灰</span>
+                                    </div>
+                                    <v-chip size="x-small" color="primary" variant="flat"
+                                        >FA</v-chip
+                                    >
+                                </div>
+                                <div class="text-h5 text-center mb-2 font-weight-bold text-primary">
+                                    {{ baseConfig.fly_ash }} kg/m³
+                                </div>
+                                <v-slider
+                                    v-model="baseConfig.fly_ash"
+                                    :min="0"
+                                    :max="200"
+                                    :step="5"
+                                    color="primary"
+                                    track-color="grey-lighten-2"
+                                    thumb-label
+                                >
+                                    <template v-slot:prepend>
+                                        <v-chip size="x-small">0</v-chip>
+                                    </template>
+                                    <template v-slot:append>
+                                        <v-chip size="x-small">200</v-chip>
+                                    </template>
+                                </v-slider>
+                                <div class="text-caption text-grey text-center">
+                                    <v-icon size="x-small">mdi-lightbulb-outline</v-icon>
+                                    微粉填充，后期强度发展
+                                </div>
+                            </v-card>
                         </v-col>
+
+                        <!-- 参数5: 高效减水剂 -->
                         <v-col cols="12" md="6">
-                            <v-text-field
-                                v-model.number="baseConfig.superplasticizer"
-                                label="高效减水剂"
-                                suffix="kg/m³"
-                                type="number"
-                                variant="outlined"
-                            ></v-text-field>
+                            <v-card variant="outlined" class="pa-4 param-card">
+                                <div class="d-flex align-center justify-space-between mb-3">
+                                    <div class="d-flex align-center">
+                                        <v-icon color="primary" class="mr-2">mdi-flask</v-icon>
+                                        <span class="text-subtitle-1 font-weight-bold"
+                                            >高效减水剂</span
+                                        >
+                                    </div>
+                                    <v-chip size="x-small" color="primary" variant="flat"
+                                        >SP</v-chip
+                                    >
+                                </div>
+                                <div class="text-h5 text-center mb-2 font-weight-bold text-primary">
+                                    {{ baseConfig.superplasticizer }} kg/m³
+                                </div>
+                                <v-slider
+                                    v-model="baseConfig.superplasticizer"
+                                    :min="0"
+                                    :max="15"
+                                    :step="0.5"
+                                    color="primary"
+                                    track-color="grey-lighten-2"
+                                    thumb-label
+                                >
+                                    <template v-slot:prepend>
+                                        <v-chip size="x-small">0</v-chip>
+                                    </template>
+                                    <template v-slot:append>
+                                        <v-chip size="x-small">15</v-chip>
+                                    </template>
+                                </v-slider>
+                                <div class="text-caption text-grey text-center">
+                                    <v-icon size="x-small">mdi-lightbulb-outline</v-icon>
+                                    保持低水灰比，提升强度
+                                </div>
+                            </v-card>
                         </v-col>
+
+                        <!-- 参数6: 粗骨料 -->
                         <v-col cols="12" md="6">
-                            <v-text-field
-                                v-model.number="baseConfig.coarse_aggregate"
-                                label="粗骨料"
-                                suffix="kg/m³"
-                                type="number"
-                                variant="outlined"
-                                :rules="[(v) => !!v || '必填']"
-                            ></v-text-field>
+                            <v-card variant="outlined" class="pa-4 param-card">
+                                <div class="d-flex align-center justify-space-between mb-3">
+                                    <div class="d-flex align-center">
+                                        <v-icon color="primary" class="mr-2"
+                                            >mdi-texture-box</v-icon
+                                        >
+                                        <span class="text-subtitle-1 font-weight-bold">粗骨料</span>
+                                    </div>
+                                    <v-chip size="x-small" color="primary" variant="flat"
+                                        >CA</v-chip
+                                    >
+                                </div>
+                                <div class="text-h5 text-center mb-2 font-weight-bold text-primary">
+                                    {{ baseConfig.coarse_aggregate }} kg/m³
+                                </div>
+                                <v-slider
+                                    v-model="baseConfig.coarse_aggregate"
+                                    :min="800"
+                                    :max="1300"
+                                    :step="10"
+                                    color="primary"
+                                    track-color="grey-lighten-2"
+                                    thumb-label
+                                >
+                                    <template v-slot:prepend>
+                                        <v-chip size="x-small">800</v-chip>
+                                    </template>
+                                    <template v-slot:append>
+                                        <v-chip size="x-small">1300</v-chip>
+                                    </template>
+                                </v-slider>
+                                <div class="text-caption text-grey text-center">
+                                    <v-icon size="x-small">mdi-lightbulb-outline</v-icon>
+                                    提供骨架，最优范围1000-1200kg/m³
+                                </div>
+                            </v-card>
                         </v-col>
+
+                        <!-- 参数7: 细骨料 -->
                         <v-col cols="12" md="6">
-                            <v-text-field
-                                v-model.number="baseConfig.fine_aggregate"
-                                label="细骨料"
-                                suffix="kg/m³"
-                                type="number"
-                                variant="outlined"
-                                :rules="[(v) => !!v || '必填']"
-                            ></v-text-field>
+                            <v-card variant="outlined" class="pa-4 param-card">
+                                <div class="d-flex align-center justify-space-between mb-3">
+                                    <div class="d-flex align-center">
+                                        <v-icon color="primary" class="mr-2">mdi-grain</v-icon>
+                                        <span class="text-subtitle-1 font-weight-bold">细骨料</span>
+                                    </div>
+                                    <v-chip size="x-small" color="primary" variant="flat"
+                                        >FA</v-chip
+                                    >
+                                </div>
+                                <div class="text-h5 text-center mb-2 font-weight-bold text-primary">
+                                    {{ baseConfig.fine_aggregate }} kg/m³
+                                </div>
+                                <v-slider
+                                    v-model="baseConfig.fine_aggregate"
+                                    :min="500"
+                                    :max="900"
+                                    :step="10"
+                                    color="primary"
+                                    track-color="grey-lighten-2"
+                                    thumb-label
+                                >
+                                    <template v-slot:prepend>
+                                        <v-chip size="x-small">500</v-chip>
+                                    </template>
+                                    <template v-slot:append>
+                                        <v-chip size="x-small">900</v-chip>
+                                    </template>
+                                </v-slider>
+                                <div class="text-caption text-grey text-center">
+                                    <v-icon size="x-small">mdi-lightbulb-outline</v-icon>
+                                    影响工作性和密实度
+                                </div>
+                            </v-card>
                         </v-col>
+
+                        <!-- 参数8: 龄期 -->
                         <v-col cols="12" md="6">
-                            <v-text-field
-                                v-model.number="baseConfig.age"
-                                label="龄期"
-                                suffix="天"
-                                type="number"
-                                :min="7"
-                                :max="90"
-                                variant="outlined"
-                                :rules="[
-                                    (v) =>
-                                        v === undefined ||
-                                        v === null ||
-                                        v >= 7 ||
-                                        '龄期不能低于7天',
-                                    (v) =>
-                                        v === undefined ||
-                                        v === null ||
-                                        v <= 90 ||
-                                        '龄期不能超过90天',
-                                ]"
-                                hint="最小为7天，建议28天"
-                                persistent-hint
-                            ></v-text-field>
+                            <v-card variant="outlined" class="pa-4 param-card">
+                                <div class="d-flex align-center justify-space-between mb-3">
+                                    <div class="d-flex align-center">
+                                        <v-icon color="primary" class="mr-2"
+                                            >mdi-calendar-clock</v-icon
+                                        >
+                                        <span class="text-subtitle-1 font-weight-bold">龄期</span>
+                                    </div>
+                                    <v-chip size="x-small" color="primary" variant="flat"
+                                        >Age</v-chip
+                                    >
+                                </div>
+                                <div class="text-h5 text-center mb-2 font-weight-bold text-primary">
+                                    {{ baseConfig.age }} 天
+                                </div>
+                                <v-slider
+                                    v-model="baseConfig.age"
+                                    :min="7"
+                                    :max="90"
+                                    :step="1"
+                                    color="primary"
+                                    track-color="grey-lighten-2"
+                                    thumb-label
+                                >
+                                    <template v-slot:prepend>
+                                        <v-chip size="x-small">7天</v-chip>
+                                    </template>
+                                    <template v-slot:append>
+                                        <v-chip size="x-small">90天</v-chip>
+                                    </template>
+                                </v-slider>
+                                <div class="text-caption text-grey text-center">
+                                    <v-icon size="x-small">mdi-lightbulb-outline</v-icon>
+                                    标准测试龄期为28天，最小为7天
+                                </div>
+                            </v-card>
                         </v-col>
                     </v-row>
                 </v-card-text>
