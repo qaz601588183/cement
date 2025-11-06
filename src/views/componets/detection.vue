@@ -14,8 +14,13 @@
             <!-- 嵌入 priment.html 页面 -->
         </v-container>
         <div style="width: 100%; height: 100%">
-            <iframe src="/priment.html" width="100%" height="1000px" frameborder="0"
-                style="border: none; margin-top: 20px"></iframe>
+            <iframe
+                src="/priment.html"
+                width="100%"
+                height="1000px"
+                frameborder="0"
+                style="border: none; margin-top: 20px"
+            ></iframe>
         </div>
 
         <!-- 上传成功提示 -->
@@ -23,13 +28,113 @@
             <v-icon class="mr-2">mdi-check-circle</v-icon>
             检测结果已成功上传分析！
         </v-snackbar>
+
+        <!-- 确认对话框 -->
+        <v-dialog v-model="showConfirmDialog" max-width="600" persistent>
+            <v-card>
+                <v-card-title class="text-h5 bg-primary text-white">
+                    <v-icon class="mr-2" color="white">mdi-check-circle-outline</v-icon>
+                    确认检测结果
+                </v-card-title>
+
+                <v-card-text class="pt-6">
+                    <v-alert type="info" variant="tonal" class="mb-4">
+                        所有实验已完成，系统已生成检测结果数据。
+                    </v-alert>
+
+                    <div class="text-body-1 mb-4">
+                        <strong>检测数据摘要：</strong>
+                    </div>
+
+                    <v-list density="compact" class="bg-grey-lighten-4 rounded">
+                        <v-list-item>
+                            <v-list-item-title>
+                                <v-icon size="small" class="mr-2" color="success"
+                                    >mdi-check-circle</v-icon
+                                >
+                                水泥指标检测完成
+                            </v-list-item-title>
+                        </v-list-item>
+                        <v-list-item>
+                            <v-list-item-title>
+                                <v-icon size="small" class="mr-2" color="success"
+                                    >mdi-check-circle</v-icon
+                                >
+                                粉煤灰指标检测完成
+                            </v-list-item-title>
+                        </v-list-item>
+                        <v-list-item>
+                            <v-list-item-title>
+                                <v-icon size="small" class="mr-2" color="success"
+                                    >mdi-check-circle</v-icon
+                                >
+                                矿渣粉指标检测完成
+                            </v-list-item-title>
+                        </v-list-item>
+                        <v-list-item>
+                            <v-list-item-title>
+                                <v-icon size="small" class="mr-2" color="success"
+                                    >mdi-check-circle</v-icon
+                                >
+                                水质指标检测完成
+                            </v-list-item-title>
+                        </v-list-item>
+                        <v-list-item>
+                            <v-list-item-title>
+                                <v-icon size="small" class="mr-2" color="success"
+                                    >mdi-check-circle</v-icon
+                                >
+                                外加剂指标检测完成
+                            </v-list-item-title>
+                        </v-list-item>
+                        <v-list-item>
+                            <v-list-item-title>
+                                <v-icon size="small" class="mr-2" color="success"
+                                    >mdi-check-circle</v-icon
+                                >
+                                粗骨料指标检测完成
+                            </v-list-item-title>
+                        </v-list-item>
+                        <v-list-item>
+                            <v-list-item-title>
+                                <v-icon size="small" class="mr-2" color="success"
+                                    >mdi-check-circle</v-icon
+                                >
+                                细骨料指标检测完成
+                            </v-list-item-title>
+                        </v-list-item>
+                    </v-list>
+
+                    <v-alert type="warning" variant="tonal" class="mt-4">
+                        <strong>注意：</strong>确认后将应用检测数据并进入配比设计流程。
+                    </v-alert>
+                </v-card-text>
+
+                <v-divider></v-divider>
+
+                <v-card-actions class="pa-4">
+                    <v-spacer></v-spacer>
+                    <v-btn color="grey" variant="outlined" @click="handleCancelConfirm">
+                        取消
+                    </v-btn>
+                    <v-btn
+                        color="primary"
+                        variant="flat"
+                        @click="handleConfirmAndProceed"
+                        prepend-icon="mdi-arrow-right-circle"
+                    >
+                        确认并进入下一步
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
     </div>
 </template>
 
 <script setup lang="ts">
-import router from '@/router';
 import { useConcreteStore } from '@/stores/useConcreteStore';
 import { onMounted, onUnmounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 // import Detection1 from './components/detection_1.vue';
 // import Detection2 from './components/detection_2.vue';
 
@@ -69,6 +174,8 @@ const selectedSample = ref<Sample>({
     isSubsampled: false,
 });
 const showUploadSnackbar = ref(false);
+const showConfirmDialog = ref(false);
+const pendingDetectionData = ref<any>(null);
 
 // 开始检测 (暂时保留，供未来使用)
 // const handleStartDetection = (sample: Sample) => {
@@ -81,6 +188,8 @@ const showUploadSnackbar = ref(false);
 //     showExperiments.value = false;
 // };
 const concreteStore = useConcreteStore();
+const router = useRouter();
+
 // 处理结果上传
 const handleUploadResults = (data: any) => {
     console.log('上传检测结果：', data);
@@ -131,11 +240,33 @@ const handleUploadResults = (data: any) => {
             },
         };
 
-        // 将模拟数据传递给下一步
+        // 保存数据并显示确认对话框
         console.log('生成的检测结果数据:', mockDetectionResults);
-        concreteStore.updateConcreteData(mockDetectionResults);
-        location.replace('/#/concrete-design/forward-step1');
+        pendingDetectionData.value = mockDetectionResults;
+        showConfirmDialog.value = true;
     }, 2000);
+};
+
+// 确认并继续
+const handleConfirmAndProceed = () => {
+    if (pendingDetectionData.value) {
+        // 应用数据
+        concreteStore.updateConcreteData(pendingDetectionData.value);
+        console.log('已应用检测结果数据');
+
+        // 关闭对话框
+        showConfirmDialog.value = false;
+
+        // 跳转到下一步
+        router.push('/concrete-design/forward-step1');
+    }
+};
+
+// 取消确认
+const handleCancelConfirm = () => {
+    showConfirmDialog.value = false;
+    pendingDetectionData.value = null;
+    console.log('用户取消了应用检测数据');
 };
 
 // 处理来自 iframe (priment.html) 的消息
