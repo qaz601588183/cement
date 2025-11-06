@@ -110,6 +110,38 @@ const router = createRouter({
     ],
 });
 
+// 路由导航守卫 - 验证登录状态
+router.beforeEach((to, from, next) => {
+    // 获取accessToken
+    const accessToken = localStorage.getItem('accessToken');
+    
+    // 白名单：不需要登录验证的路由
+    const whiteList = ['/login', '/404'];
+    
+    // 判断是否在白名单中
+    const isInWhiteList = whiteList.includes(to.path);
+    
+    if (accessToken) {
+        // 已登录
+        if (to.path === '/login') {
+            // 如果已登录，访问登录页则跳转到首页
+            next('/');
+        } else {
+            // 正常访问
+            next();
+        }
+    } else {
+        // 未登录
+        if (isInWhiteList) {
+            // 在白名单中，直接放行
+            next();
+        } else {
+            // 不在白名单中，跳转到登录页
+            next('/login');
+        }
+    }
+});
+
 export default router;
 
 /**
