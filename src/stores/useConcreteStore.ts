@@ -16,11 +16,53 @@ export interface MixProportionParams {
 }
 
 /**
+ * 实验检测数据接口
+ */
+export interface DetectionResults {
+    cement?: {
+        insoluble_matter_percent: number; // 不溶物 (%)
+        magnesium_oxide_percent: number; // 氧化镁 (%)
+        sulfur_trioxide_percent: number; // 氧化硫 (%)
+    };
+    fly_ash?: {
+        loss_on_ignition_percent: number; // 烧失量 (%)
+        moisture_content_percent: number; // 含水量 (%)
+        sulfur_trioxide_percent: number; // 三氧化硫 (%)
+    };
+    blast_furnace_slag?: {
+        sulfur_trioxide_percent: number; // 三氧化硫 (%)
+        chloride_ion_percent: number; // 氯离子 (%)
+    };
+    water?: {
+        ph_value: number; // pH值
+        insoluble_matter_mg_per_L: number; // 不溶物 (mg/L)
+    };
+    superplasticizer?: {
+        moisture_content_percent_powder: number; // 含水率(粉体) (%)
+        density_tolerance_g_per_cm3: number; // 密度(液体) (g/cm³)
+        chloride_ion_percent: number; // 氯离子含量 (%)
+    };
+    coarse_aggregate?: {
+        flaky_elongated_particles_percent: number; // 针片状颗粒含量 (%)
+        clay_content_percent: number; // 含泥量 (%)
+        crushing_value_percent: number; // 压碎指标 (%)
+    };
+    fine_aggregate?: {
+        clay_content_percent: number; // 含泥量 (%)
+        mica_content_percent: number; // 云母含量 (%)
+        chloride_ion_percent: number; // 氯离子含量 (%)
+    };
+}
+
+/**
  * 混凝土数据接口
  */
 export interface ConcreteData {
     // 配合比参数
-    mixProportionParams: MixProportionParams;
+    mixProportionParams?: MixProportionParams;
+
+    // 实验检测数据
+    detectionResults?: DetectionResults;
 
     // 可以添加其他需要的字段
     [key: string]: any;

@@ -102,6 +102,477 @@
                 </template>
             </v-alert>
 
+            <!-- 实验检测数据展示 -->
+            <v-card v-if="hasDetectionData" class="mb-4">
+                <v-card-title class="d-flex justify-space-between align-center">
+                    <div class="d-flex align-center">
+                        <v-icon class="mr-2" color="success">mdi-test-tube</v-icon>
+                        <span>智慧实验室检测数据</span>
+                    </div>
+                    <v-chip color="success" size="small">
+                        <v-icon start size="small">mdi-check-circle</v-icon>
+                        已获取
+                    </v-chip>
+                </v-card-title>
+                <v-divider></v-divider>
+                <v-card-text>
+                    <v-row>
+                        <!-- 水泥检测数据 -->
+                        <v-col cols="12" md="6" lg="4" v-if="detectionData?.cement">
+                            <v-card variant="outlined" class="detection-item-card">
+                                <v-card-title class="text-subtitle-1 pb-2">
+                                    <v-icon class="mr-2" size="small">mdi-package-variant</v-icon>
+                                    水泥 (Cement)
+                                </v-card-title>
+                                <v-card-text class="pt-0">
+                                    <div class="detection-item">
+                                        <span class="detection-label">不溶物:</span>
+                                        <span
+                                            :class="
+                                                getStatusClass(
+                                                    detectionData.cement.insoluble_matter_percent,
+                                                    0,
+                                                    1.5
+                                                )
+                                            "
+                                        >
+                                            {{
+                                                detectionData.cement.insoluble_matter_percent.toFixed(
+                                                    2
+                                                )
+                                            }}%
+                                        </span>
+                                        <span class="detection-range">≤1.5%</span>
+                                    </div>
+                                    <div class="detection-item">
+                                        <span class="detection-label">氧化镁:</span>
+                                        <span
+                                            :class="
+                                                getStatusClass(
+                                                    detectionData.cement.magnesium_oxide_percent,
+                                                    0,
+                                                    5.0
+                                                )
+                                            "
+                                        >
+                                            {{
+                                                detectionData.cement.magnesium_oxide_percent.toFixed(
+                                                    2
+                                                )
+                                            }}%
+                                        </span>
+                                        <span class="detection-range">≤5.0%</span>
+                                    </div>
+                                    <div class="detection-item">
+                                        <span class="detection-label">氧化硫:</span>
+                                        <span
+                                            :class="
+                                                getStatusClass(
+                                                    detectionData.cement.sulfur_trioxide_percent,
+                                                    0,
+                                                    4.0
+                                                )
+                                            "
+                                        >
+                                            {{
+                                                detectionData.cement.sulfur_trioxide_percent.toFixed(
+                                                    2
+                                                )
+                                            }}%
+                                        </span>
+                                        <span class="detection-range">≤4.0%</span>
+                                    </div>
+                                </v-card-text>
+                            </v-card>
+                        </v-col>
+
+                        <!-- 粉煤灰检测数据 -->
+                        <v-col cols="12" md="6" lg="4" v-if="detectionData?.fly_ash">
+                            <v-card variant="outlined" class="detection-item-card">
+                                <v-card-title class="text-subtitle-1 pb-2">
+                                    <v-icon class="mr-2" size="small">mdi-grain</v-icon>
+                                    粉煤灰 (Fly Ash)
+                                </v-card-title>
+                                <v-card-text class="pt-0">
+                                    <div class="detection-item">
+                                        <span class="detection-label">烧失量:</span>
+                                        <span
+                                            :class="
+                                                getStatusClass(
+                                                    detectionData.fly_ash.loss_on_ignition_percent,
+                                                    0,
+                                                    5.0
+                                                )
+                                            "
+                                        >
+                                            {{
+                                                detectionData.fly_ash.loss_on_ignition_percent.toFixed(
+                                                    2
+                                                )
+                                            }}%
+                                        </span>
+                                        <span class="detection-range">≤5.0%</span>
+                                    </div>
+                                    <div class="detection-item">
+                                        <span class="detection-label">含水量:</span>
+                                        <span
+                                            :class="
+                                                getStatusClass(
+                                                    detectionData.fly_ash.moisture_content_percent,
+                                                    0,
+                                                    1.0
+                                                )
+                                            "
+                                        >
+                                            {{
+                                                detectionData.fly_ash.moisture_content_percent.toFixed(
+                                                    2
+                                                )
+                                            }}%
+                                        </span>
+                                        <span class="detection-range">≤1.0%</span>
+                                    </div>
+                                    <div class="detection-item">
+                                        <span class="detection-label">三氧化硫:</span>
+                                        <span
+                                            :class="
+                                                getStatusClass(
+                                                    detectionData.fly_ash.sulfur_trioxide_percent,
+                                                    0,
+                                                    3.0
+                                                )
+                                            "
+                                        >
+                                            {{
+                                                detectionData.fly_ash.sulfur_trioxide_percent.toFixed(
+                                                    2
+                                                )
+                                            }}%
+                                        </span>
+                                        <span class="detection-range">≤3.0%</span>
+                                    </div>
+                                </v-card-text>
+                            </v-card>
+                        </v-col>
+
+                        <!-- 高炉矿渣检测数据 -->
+                        <v-col cols="12" md="6" lg="4" v-if="detectionData?.blast_furnace_slag">
+                            <v-card variant="outlined" class="detection-item-card">
+                                <v-card-title class="text-subtitle-1 pb-2">
+                                    <v-icon class="mr-2" size="small">mdi-cube-outline</v-icon>
+                                    高炉矿渣 (Slag)
+                                </v-card-title>
+                                <v-card-text class="pt-0">
+                                    <div class="detection-item">
+                                        <span class="detection-label">三氧化硫:</span>
+                                        <span
+                                            :class="
+                                                getStatusClass(
+                                                    detectionData.blast_furnace_slag
+                                                        .sulfur_trioxide_percent,
+                                                    0,
+                                                    4.0
+                                                )
+                                            "
+                                        >
+                                            {{
+                                                detectionData.blast_furnace_slag.sulfur_trioxide_percent.toFixed(
+                                                    2
+                                                )
+                                            }}%
+                                        </span>
+                                        <span class="detection-range">≤4.0%</span>
+                                    </div>
+                                    <div class="detection-item">
+                                        <span class="detection-label">氯离子:</span>
+                                        <span
+                                            :class="
+                                                getStatusClass(
+                                                    detectionData.blast_furnace_slag
+                                                        .chloride_ion_percent,
+                                                    0,
+                                                    0.06
+                                                )
+                                            "
+                                        >
+                                            {{
+                                                detectionData.blast_furnace_slag.chloride_ion_percent.toFixed(
+                                                    3
+                                                )
+                                            }}%
+                                        </span>
+                                        <span class="detection-range">≤0.06%</span>
+                                    </div>
+                                </v-card-text>
+                            </v-card>
+                        </v-col>
+
+                        <!-- 水检测数据 -->
+                        <v-col cols="12" md="6" lg="4" v-if="detectionData?.water">
+                            <v-card variant="outlined" class="detection-item-card">
+                                <v-card-title class="text-subtitle-1 pb-2">
+                                    <v-icon class="mr-2" size="small">mdi-water</v-icon>
+                                    水 (Water)
+                                </v-card-title>
+                                <v-card-text class="pt-0">
+                                    <div class="detection-item">
+                                        <span class="detection-label">pH值:</span>
+                                        <span
+                                            :class="
+                                                getStatusClassForPh(
+                                                    detectionData.water.ph_value,
+                                                    4.5
+                                                )
+                                            "
+                                        >
+                                            {{ detectionData.water.ph_value.toFixed(2) }}
+                                        </span>
+                                        <span class="detection-range">≥4.5</span>
+                                    </div>
+                                    <div class="detection-item">
+                                        <span class="detection-label">不溶物:</span>
+                                        <span
+                                            :class="
+                                                getStatusClass(
+                                                    detectionData.water.insoluble_matter_mg_per_L,
+                                                    0,
+                                                    2000
+                                                )
+                                            "
+                                        >
+                                            {{
+                                                detectionData.water.insoluble_matter_mg_per_L.toFixed(
+                                                    0
+                                                )
+                                            }}
+                                            mg/L
+                                        </span>
+                                        <span class="detection-range">≤2000 mg/L</span>
+                                    </div>
+                                </v-card-text>
+                            </v-card>
+                        </v-col>
+
+                        <!-- 高效减水剂检测数据 -->
+                        <v-col cols="12" md="6" lg="4" v-if="detectionData?.superplasticizer">
+                            <v-card variant="outlined" class="detection-item-card">
+                                <v-card-title class="text-subtitle-1 pb-2">
+                                    <v-icon class="mr-2" size="small">mdi-flask</v-icon>
+                                    高效减水剂 (SP)
+                                </v-card-title>
+                                <v-card-text class="pt-0">
+                                    <div class="detection-item">
+                                        <span class="detection-label">含水率(粉):</span>
+                                        <span
+                                            :class="
+                                                getStatusClass(
+                                                    detectionData.superplasticizer
+                                                        .moisture_content_percent_powder,
+                                                    0,
+                                                    5.0
+                                                )
+                                            "
+                                        >
+                                            {{
+                                                detectionData.superplasticizer.moisture_content_percent_powder.toFixed(
+                                                    2
+                                                )
+                                            }}%
+                                        </span>
+                                        <span class="detection-range">≤5.0%</span>
+                                    </div>
+                                    <div class="detection-item">
+                                        <span class="detection-label">密度偏差:</span>
+                                        <span
+                                            :class="
+                                                getStatusClass(
+                                                    detectionData.superplasticizer
+                                                        .density_tolerance_g_per_cm3,
+                                                    0,
+                                                    0.03
+                                                )
+                                            "
+                                        >
+                                            {{
+                                                detectionData.superplasticizer.density_tolerance_g_per_cm3.toFixed(
+                                                    3
+                                                )
+                                            }}
+                                            g/cm³
+                                        </span>
+                                        <span class="detection-range">≤±0.03</span>
+                                    </div>
+                                    <div class="detection-item">
+                                        <span class="detection-label">氯离子:</span>
+                                        <span
+                                            :class="
+                                                getStatusClass(
+                                                    detectionData.superplasticizer
+                                                        .chloride_ion_percent,
+                                                    0,
+                                                    0.2
+                                                )
+                                            "
+                                        >
+                                            {{
+                                                detectionData.superplasticizer.chloride_ion_percent.toFixed(
+                                                    2
+                                                )
+                                            }}%
+                                        </span>
+                                        <span class="detection-range">≤0.20%</span>
+                                    </div>
+                                </v-card-text>
+                            </v-card>
+                        </v-col>
+
+                        <!-- 粗骨料检测数据 -->
+                        <v-col cols="12" md="6" lg="4" v-if="detectionData?.coarse_aggregate">
+                            <v-card variant="outlined" class="detection-item-card">
+                                <v-card-title class="text-subtitle-1 pb-2">
+                                    <v-icon class="mr-2" size="small">mdi-texture-box</v-icon>
+                                    粗骨料 (CA)
+                                </v-card-title>
+                                <v-card-text class="pt-0">
+                                    <div class="detection-item">
+                                        <span class="detection-label">针片状:</span>
+                                        <span
+                                            :class="
+                                                getStatusClass(
+                                                    detectionData.coarse_aggregate
+                                                        .flaky_elongated_particles_percent,
+                                                    0,
+                                                    15.0
+                                                )
+                                            "
+                                        >
+                                            {{
+                                                detectionData.coarse_aggregate.flaky_elongated_particles_percent.toFixed(
+                                                    2
+                                                )
+                                            }}%
+                                        </span>
+                                        <span class="detection-range">≤15.0%</span>
+                                    </div>
+                                    <div class="detection-item">
+                                        <span class="detection-label">含泥量:</span>
+                                        <span
+                                            :class="
+                                                getStatusClass(
+                                                    detectionData.coarse_aggregate
+                                                        .clay_content_percent,
+                                                    0,
+                                                    2.0
+                                                )
+                                            "
+                                        >
+                                            {{
+                                                detectionData.coarse_aggregate.clay_content_percent.toFixed(
+                                                    2
+                                                )
+                                            }}%
+                                        </span>
+                                        <span class="detection-range">≤2.0%</span>
+                                    </div>
+                                    <div class="detection-item">
+                                        <span class="detection-label">压碎指标:</span>
+                                        <span
+                                            :class="
+                                                getStatusClass(
+                                                    detectionData.coarse_aggregate
+                                                        .crushing_value_percent,
+                                                    0,
+                                                    10.0
+                                                )
+                                            "
+                                        >
+                                            {{
+                                                detectionData.coarse_aggregate.crushing_value_percent.toFixed(
+                                                    2
+                                                )
+                                            }}%
+                                        </span>
+                                        <span class="detection-range">≤10.0%</span>
+                                    </div>
+                                </v-card-text>
+                            </v-card>
+                        </v-col>
+
+                        <!-- 细骨料检测数据 -->
+                        <v-col cols="12" md="6" lg="4" v-if="detectionData?.fine_aggregate">
+                            <v-card variant="outlined" class="detection-item-card">
+                                <v-card-title class="text-subtitle-1 pb-2">
+                                    <v-icon class="mr-2" size="small">mdi-grain</v-icon>
+                                    细骨料 (FA)
+                                </v-card-title>
+                                <v-card-text class="pt-0">
+                                    <div class="detection-item">
+                                        <span class="detection-label">含泥量:</span>
+                                        <span
+                                            :class="
+                                                getStatusClass(
+                                                    detectionData.fine_aggregate
+                                                        .clay_content_percent,
+                                                    0,
+                                                    3.0
+                                                )
+                                            "
+                                        >
+                                            {{
+                                                detectionData.fine_aggregate.clay_content_percent.toFixed(
+                                                    2
+                                                )
+                                            }}%
+                                        </span>
+                                        <span class="detection-range">≤3.0%</span>
+                                    </div>
+                                    <div class="detection-item">
+                                        <span class="detection-label">云母含量:</span>
+                                        <span
+                                            :class="
+                                                getStatusClass(
+                                                    detectionData.fine_aggregate
+                                                        .mica_content_percent,
+                                                    0,
+                                                    2.0
+                                                )
+                                            "
+                                        >
+                                            {{
+                                                detectionData.fine_aggregate.mica_content_percent.toFixed(
+                                                    2
+                                                )
+                                            }}%
+                                        </span>
+                                        <span class="detection-range">≤2.0%</span>
+                                    </div>
+                                    <div class="detection-item">
+                                        <span class="detection-label">氯离子:</span>
+                                        <span
+                                            :class="
+                                                getStatusClass(
+                                                    detectionData.fine_aggregate
+                                                        .chloride_ion_percent,
+                                                    0,
+                                                    0.02
+                                                )
+                                            "
+                                        >
+                                            {{
+                                                detectionData.fine_aggregate.chloride_ion_percent.toFixed(
+                                                    3
+                                                )
+                                            }}%
+                                        </span>
+                                        <span class="detection-range">≤0.02%</span>
+                                    </div>
+                                </v-card-text>
+                            </v-card>
+                        </v-col>
+                    </v-row>
+                </v-card-text>
+            </v-card>
+
             <!-- 预设配置选择 -->
             <v-card class="mb-4">
                 <v-card-title>
@@ -498,7 +969,11 @@
 
 <script setup lang="ts">
 import PredictAPI, { type PredictRequest } from '@/api/predict';
-import { useConcreteStore, type MixProportionParams } from '@/stores/useConcreteStore';
+import {
+    useConcreteStore,
+    type DetectionResults,
+    type MixProportionParams,
+} from '@/stores/useConcreteStore';
 import { calculateConcreteStrength, type ConcreteParameters } from '@/utils/concreteStrengthModel';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
@@ -516,7 +991,19 @@ const isGeneratingReport = ref(false);
 const selectedPreset = ref<string | null>(null);
 
 // 可编辑的参数 - 从store初始化
-const editableParams = ref<MixProportionParams>({ ...concreteStore.forwardData.mixProportionParams });
+const editableParams = ref<MixProportionParams>({
+    ...concreteStore.forwardData.mixProportionParams,
+});
+
+// 检测数据 - 从store获取
+const detectionData = computed<DetectionResults | null>(() => {
+    return concreteStore.concreteData?.detectionResults || null;
+});
+
+// 是否有检测数据
+const hasDetectionData = computed(() => {
+    return detectionData.value !== null && Object.keys(detectionData.value).length > 0;
+});
 
 // 预设配置
 const presetConfigs = [
@@ -674,7 +1161,7 @@ const applyPreset = (presetName: string) => {
 const handleParameterChange = () => {
     // 实时更新到store
     concreteStore.updateForwardData({
-        mixProportionParams: editableParams.value
+        mixProportionParams: editableParams.value,
     });
     console.log('参数已更新:', editableParams.value);
     console.log('预测强度:', predictedStrength.value, 'MPa');
@@ -731,7 +1218,7 @@ const generateReport = async () => {
         };
 
         concreteStore.updateForwardData({
-            analysisResult: reportData
+            analysisResult: reportData,
         });
 
         // 跳转到Step2
@@ -842,6 +1329,22 @@ const getProgressColor = (progress: number) => {
     return 'success';
 };
 
+// 获取检测数据状态样式（对于 ≤ 的情况）
+const getStatusClass = (value: number, min: number, max: number): string => {
+    if (value >= min && value <= max) {
+        return 'detection-value detection-value-pass';
+    }
+    return 'detection-value detection-value-fail';
+};
+
+// 获取pH值状态样式（对于 ≥ 的情况）
+const getStatusClassForPh = (value: number, minValue: number): string => {
+    if (value >= minValue) {
+        return 'detection-value detection-value-pass';
+    }
+    return 'detection-value detection-value-fail';
+};
+
 // 生命周期
 // 监听参数变化，清除预设选中状态（用户手动调整时）
 watch(
@@ -889,7 +1392,7 @@ watch(
             editableParams.value = { ...newData.mixProportionParams };
             // 同时更新到forwardData
             concreteStore.updateForwardData({
-                mixProportionParams: newData.mixProportionParams
+                mixProportionParams: newData.mixProportionParams,
             });
             console.log('从检测页面接收参数:', editableParams.value);
             selectedPreset.value = null;
@@ -951,6 +1454,63 @@ onMounted(() => {
     }
 }
 
+// 检测数据卡片样式
+.detection-item-card {
+    transition: all 0.3s ease;
+    border: 1px solid rgb(var(--v-theme-grey-lighten-3));
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    :deep(.v-card-title) {
+        background: rgb(var(--v-theme-grey-lighten-5));
+        border-bottom: 1px solid rgb(var(--v-theme-grey-lighten-3));
+    }
+}
+
+.detection-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgb(var(--v-theme-grey-lighten-4));
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    .detection-label {
+        font-size: 0.875rem;
+        color: rgb(var(--v-theme-grey-darken-2));
+        flex: 0 0 auto;
+        min-width: 90px;
+    }
+
+    .detection-value {
+        font-weight: 600;
+        font-size: 0.9375rem;
+        flex: 1;
+        text-align: center;
+    }
+
+    .detection-value-pass {
+        color: rgb(var(--v-theme-success));
+    }
+
+    .detection-value-fail {
+        color: rgb(var(--v-theme-error));
+    }
+
+    .detection-range {
+        font-size: 0.75rem;
+        color: rgb(var(--v-theme-grey));
+        flex: 0 0 auto;
+        text-align: right;
+        min-width: 80px;
+    }
+}
+
 // 使用Vuetify默认样式
 </style>
-
