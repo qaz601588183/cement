@@ -54,6 +54,10 @@
         .logo {
             .v-avatar {
                 border-radius: 0;
+                
+                img {
+                    object-fit: contain !important;
+                }
             }
             .v-list-item__content {
                 // margin-left: 30px;

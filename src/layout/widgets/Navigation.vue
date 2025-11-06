@@ -10,9 +10,13 @@
         style="position: fixed"
     >
         <v-list class="py-4 mx-2 logo" nav>
-            <v-list-item rounded :prepend-avatar="logo" class="mx-1" to="/vue-material-admin/">
+            <v-list-item>
+                <img :src="logo" height="30" />
+            </v-list-item>
+            <v-list-item rounded class="mx-1" to="/">
+                <!-- <v-list-item rounded :prepend-avatar="logo" class="mx-1" to="/"> -->
                 <v-list-item-title class="title">水泥强度质量推演系统</v-list-item-title>
-                <v-list-item-subtitle>www.cement.com</v-list-item-subtitle>
+                <!-- <v-list-item-subtitle>www.cement.com</v-list-item-subtitle> -->
             </v-list-item>
         </v-list>
         <v-divider class="mx-5"></v-divider>

@@ -24,12 +24,12 @@
             ></v-text-field>
         </div>
         <div class="tool_btns">
-            <v-btn
+            <!-- <v-btn
                 @click="appEvent.onTheme"
                 variant="text"
                 :icon="appEvent.theme === 'light' ? 'mdi-theme-light-dark' : 'mdi-weather-sunny'"
-            />
-            <v-menu v-model="messageVisible" :close-on-content-click="false">
+            /> -->
+            <!-- <v-menu v-model="messageVisible" :close-on-content-click="false">
                 <template v-slot:activator="{ props }">
                     <v-btn v-bind="props" variant="text" icon="mdi-bell-outline">
                         <v-badge content="2" color="error">
@@ -64,13 +64,13 @@
                         </v-tooltip>
                     </div>
                 </v-card>
-            </v-menu>
+            </v-menu> -->
 
             <v-btn variant="text" icon="mdi" class="mr-2">
                 <v-avatar size="small" class="avatar">
                     <v-img
-                        src="https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif?imageView2/1/w/80/h/80"
-                        alt="陈咩啊"
+                        src="https://q2.itc.cn/q_70/images03/20250225/e8117dd40aae4db5a64461f1ea0d16fc.jpeg"
+                        alt="啊"
                     ></v-img>
                 </v-avatar>
                 <v-menu activator="parent" transition="slide-y-transition">

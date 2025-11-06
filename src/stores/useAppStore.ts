@@ -27,7 +27,8 @@ export const useAppStore = defineStore('main', () => {
     });
     const root = document.querySelector(':root');
     root?.setAttribute('theme', scheme.matches ? 'dark' : 'light');
-    const theme = ref(scheme.matches ? 'dark' : 'light');
+    const theme = ref('dark');
+    // const theme = ref(scheme.matches ? 'dark' : 'light');
 
     const onTheme = (val?: string) => {
         if (typeof val === 'string') {
