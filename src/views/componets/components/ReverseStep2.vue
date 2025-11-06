@@ -194,9 +194,9 @@ const optimizedPieChartRef = ref<HTMLDivElement>();
 let strengthComparisonChart: echarts.ECharts | null = null;
 let paramComparisonChart: echarts.ECharts | null = null;
 let adjustmentDetailsChart: echarts.ECharts | null = null;
-const radarChart: echarts.ECharts | null = null;
-const basePieChart: echarts.ECharts | null = null;
-const optimizedPieChart: echarts.ECharts | null = null;
+let radarChart: echarts.ECharts | null = null;
+let basePieChart: echarts.ECharts | null = null;
+let optimizedPieChart: echarts.ECharts | null = null;
 
 // 优化结果
 const optimizeResult = computed(() => props.data);
@@ -211,6 +211,68 @@ const paramLabels: Record<string, { label: string; unit: string; icon: string }>
     coarse_aggregate: { label: '粗骨料', unit: 'kg/m³', icon: 'mdi-texture-box' },
     fine_aggregate: { label: '细骨料', unit: 'kg/m³', icon: 'mdi-grain' },
     age: { label: '龄期', unit: '天', icon: 'mdi-calendar' },
+};
+
+// 参数键列表
+const paramKeys = [
+    'cement',
+    'blast_furnace_slag',
+    'fly_ash',
+    'water',
+    'superplasticizer',
+    'coarse_aggregate',
+    'fine_aggregate',
+    'age',
+];
+
+// 格式化数值
+const formatValue = (value: any): string => {
+    if (value === null || value === undefined) return '-';
+    const num = Number(value);
+    if (isNaN(num)) return '-';
+    return num.toFixed(2);
+};
+
+// 格式化变化量
+const formatChange = (key: string): string => {
+    const baseValue = optimizeResult.value.base_config?.[key];
+    const optimizedValue = optimizeResult.value.optimized_config?.[key];
+
+    if (baseValue === undefined || optimizedValue === undefined) return '-';
+
+    const change = Number(optimizedValue) - Number(baseValue);
+    if (isNaN(change)) return '-';
+
+    return `${change > 0 ? '+' : ''}${change.toFixed(2)}`;
+};
+
+// 格式化变化百分比
+const formatChangePercent = (key: string): string => {
+    const baseValue = optimizeResult.value.base_config?.[key];
+    const optimizedValue = optimizeResult.value.optimized_config?.[key];
+
+    if (baseValue === undefined || optimizedValue === undefined || baseValue === 0) return '-';
+
+    const change = Number(optimizedValue) - Number(baseValue);
+    const changePercent = (change / Number(baseValue)) * 100;
+
+    if (isNaN(changePercent)) return '-';
+
+    return `${changePercent > 0 ? '+' : ''}${changePercent.toFixed(2)}%`;
+};
+
+// 获取变化的CSS类
+const getChangeClass = (key: string): string => {
+    const baseValue = optimizeResult.value.base_config?.[key];
+    const optimizedValue = optimizeResult.value.optimized_config?.[key];
+
+    if (baseValue === undefined || optimizedValue === undefined) return '';
+
+    const change = Number(optimizedValue) - Number(baseValue);
+
+    if (change > 0) return 'text-success';
+    if (change < 0) return 'text-warning';
+    return '';
 };
 
 // 应用优化
@@ -526,12 +588,225 @@ const initAdjustmentDetailsChart = () => {
     adjustmentDetailsChart.setOption(option);
 };
 
+// 初始化雷达图
+const initRadarChart = () => {
+    if (!radarChartRef.value) return;
+
+    radarChart = echarts.init(radarChartRef.value);
+
+    const base = optimizeResult.value.base_config || {};
+    const optimized = optimizeResult.value.optimized_config || {};
+
+    // 定义雷达图的维度
+    const indicators = [
+        { name: '水泥', max: 600 },
+        { name: '高炉矿渣', max: 200 },
+        { name: '粉煤灰', max: 200 },
+        { name: '水', max: 250 },
+        { name: '减水剂', max: 15 },
+        { name: '粗骨料', max: 1300 },
+        { name: '细骨料', max: 900 },
+    ];
+
+    const baseData = [
+        base.cement || 0,
+        base.blast_furnace_slag || 0,
+        base.fly_ash || 0,
+        base.water || 0,
+        base.superplasticizer || 0,
+        base.coarse_aggregate || 0,
+        base.fine_aggregate || 0,
+    ];
+
+    const optimizedData = [
+        optimized.cement || 0,
+        optimized.blast_furnace_slag || 0,
+        optimized.fly_ash || 0,
+        optimized.water || 0,
+        optimized.superplasticizer || 0,
+        optimized.coarse_aggregate || 0,
+        optimized.fine_aggregate || 0,
+    ];
+
+    const option: EChartsOption = {
+        title: {
+            text: '配比参数雷达对比',
+            left: 'center',
+            textStyle: {
+                fontSize: 18,
+                fontWeight: 'bold',
+            },
+        },
+        tooltip: {
+            trigger: 'item',
+        },
+        legend: {
+            data: ['基准配比', '优化配比'],
+            top: '10%',
+        },
+        radar: {
+            indicator: indicators,
+            center: ['50%', '55%'],
+            radius: '65%',
+        },
+        series: [
+            {
+                name: '配比对比',
+                type: 'radar',
+                data: [
+                    {
+                        value: baseData,
+                        name: '基准配比',
+                        itemStyle: {
+                            color: '#42a5f5',
+                        },
+                        areaStyle: {
+                            color: 'rgba(66, 165, 245, 0.3)',
+                        },
+                    },
+                    {
+                        value: optimizedData,
+                        name: '优化配比',
+                        itemStyle: {
+                            color: '#66bb6a',
+                        },
+                        areaStyle: {
+                            color: 'rgba(102, 187, 106, 0.3)',
+                        },
+                    },
+                ],
+            },
+        ],
+    };
+
+    radarChart.setOption(option);
+};
+
+// 初始化基准配比饼图
+const initBasePieChart = () => {
+    if (!basePieChartRef.value) return;
+
+    basePieChart = echarts.init(basePieChartRef.value);
+
+    const base = optimizeResult.value.base_config || {};
+
+    const data = [
+        { value: base.cement || 0, name: '水泥' },
+        { value: base.blast_furnace_slag || 0, name: '高炉矿渣' },
+        { value: base.fly_ash || 0, name: '粉煤灰' },
+        { value: base.water || 0, name: '水' },
+        { value: base.superplasticizer || 0, name: '减水剂' },
+        { value: base.coarse_aggregate || 0, name: '粗骨料' },
+        { value: base.fine_aggregate || 0, name: '细骨料' },
+    ].filter((item) => item.value > 0); // 过滤掉值为0的项
+
+    const option: EChartsOption = {
+        tooltip: {
+            trigger: 'item',
+            formatter: '{a} <br/>{b}: {c} kg/m³ ({d}%)',
+        },
+        legend: {
+            orient: 'vertical',
+            left: 'left',
+            top: 'middle',
+        },
+        series: [
+            {
+                name: '基准配比',
+                type: 'pie',
+                radius: ['40%', '70%'],
+                avoidLabelOverlap: false,
+                itemStyle: {
+                    borderRadius: 10,
+                    borderColor: '#fff',
+                    borderWidth: 2,
+                },
+                label: {
+                    show: true,
+                    formatter: '{b}\n{d}%',
+                },
+                emphasis: {
+                    label: {
+                        show: true,
+                        fontSize: 14,
+                        fontWeight: 'bold',
+                    },
+                },
+                data: data,
+            },
+        ],
+    };
+
+    basePieChart.setOption(option);
+};
+
+// 初始化优化配比饼图
+const initOptimizedPieChart = () => {
+    if (!optimizedPieChartRef.value) return;
+
+    optimizedPieChart = echarts.init(optimizedPieChartRef.value);
+
+    const optimized = optimizeResult.value.optimized_config || {};
+
+    const data = [
+        { value: optimized.cement || 0, name: '水泥' },
+        { value: optimized.blast_furnace_slag || 0, name: '高炉矿渣' },
+        { value: optimized.fly_ash || 0, name: '粉煤灰' },
+        { value: optimized.water || 0, name: '水' },
+        { value: optimized.superplasticizer || 0, name: '减水剂' },
+        { value: optimized.coarse_aggregate || 0, name: '粗骨料' },
+        { value: optimized.fine_aggregate || 0, name: '细骨料' },
+    ].filter((item) => item.value > 0); // 过滤掉值为0的项
+
+    const option: EChartsOption = {
+        tooltip: {
+            trigger: 'item',
+            formatter: '{a} <br/>{b}: {c} kg/m³ ({d}%)',
+        },
+        legend: {
+            orient: 'vertical',
+            left: 'left',
+            top: 'middle',
+        },
+        series: [
+            {
+                name: '优化配比',
+                type: 'pie',
+                radius: ['40%', '70%'],
+                avoidLabelOverlap: false,
+                itemStyle: {
+                    borderRadius: 10,
+                    borderColor: '#fff',
+                    borderWidth: 2,
+                },
+                label: {
+                    show: true,
+                    formatter: '{b}\n{d}%',
+                },
+                emphasis: {
+                    label: {
+                        show: true,
+                        fontSize: 14,
+                        fontWeight: 'bold',
+                    },
+                },
+                data: data,
+            },
+        ],
+    };
+
+    optimizedPieChart.setOption(option);
+};
+
 // 初始化所有图表
 const initAllCharts = async () => {
     await nextTick();
     initStrengthComparisonChart();
     initParamComparisonChart();
     initAdjustmentDetailsChart();
+    initRadarChart();
+    initBasePieChart();
+    initOptimizedPieChart();
 };
 
 // 窗口resize时重新调整图表大小
@@ -539,6 +814,9 @@ const handleResize = () => {
     strengthComparisonChart?.resize();
     paramComparisonChart?.resize();
     adjustmentDetailsChart?.resize();
+    radarChart?.resize();
+    basePieChart?.resize();
+    optimizedPieChart?.resize();
 };
 
 // 生命周期
@@ -552,6 +830,9 @@ onBeforeUnmount(() => {
     strengthComparisonChart?.dispose();
     paramComparisonChart?.dispose();
     adjustmentDetailsChart?.dispose();
+    radarChart?.dispose();
+    basePieChart?.dispose();
+    optimizedPieChart?.dispose();
     window.removeEventListener('resize', handleResize);
 });
 </script>

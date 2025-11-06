@@ -112,8 +112,8 @@ import router, { syncRouter } from '@/router';
 import { reactive, shallowRef } from 'vue';
 
 const state = reactive({
-    username: 'admin',
-    password: '123456',
+    username: 'test',
+    password: 'test123456',
     // captcha: '',
     isQuick: true,
 });

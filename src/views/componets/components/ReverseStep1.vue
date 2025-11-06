@@ -208,7 +208,23 @@
                                 label="龄期"
                                 suffix="天"
                                 type="number"
+                                :min="7"
+                                :max="90"
                                 variant="outlined"
+                                :rules="[
+                                    (v) =>
+                                        v === undefined ||
+                                        v === null ||
+                                        v >= 7 ||
+                                        '龄期不能低于7天',
+                                    (v) =>
+                                        v === undefined ||
+                                        v === null ||
+                                        v <= 90 ||
+                                        '龄期不能超过90天',
+                                ]"
+                                hint="最小为7天，建议28天"
+                                persistent-hint
                             ></v-text-field>
                         </v-col>
                     </v-row>

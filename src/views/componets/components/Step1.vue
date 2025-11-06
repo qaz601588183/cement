@@ -438,7 +438,7 @@
                                 </div>
                                 <v-slider
                                     v-model="editableParams.age"
-                                    :min="1"
+                                    :min="7"
                                     :max="90"
                                     :step="1"
                                     color="primary"
@@ -447,7 +447,7 @@
                                     @update:model-value="handleParameterChange"
                                 >
                                     <template v-slot:prepend>
-                                        <v-chip size="x-small">1天</v-chip>
+                                        <v-chip size="x-small">7天</v-chip>
                                     </template>
                                     <template v-slot:append>
                                         <v-chip size="x-small">90天</v-chip>
@@ -455,7 +455,7 @@
                                 </v-slider>
                                 <div class="text-caption text-grey text-center">
                                     <v-icon size="x-small">mdi-lightbulb-outline</v-icon>
-                                    标准测试龄期为28天
+                                    标准测试龄期为28天，最小为7天
                                 </div>
                             </v-card>
                         </v-col>
