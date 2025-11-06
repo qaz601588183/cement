@@ -12,7 +12,7 @@
             <v-icon size="small"></v-icon>
         </v-btn>
         <v-spacer></v-spacer>
-        <div v-if="!appEvent.isMobile" style="width: 320px" class="search_ip mr-2">
+        <!-- <div v-if="!appEvent.isMobile" style="width: 320px" class="search_ip mr-2">
             <v-text-field
                 rounded
                 variant="outlined"
@@ -22,7 +22,7 @@
                 hide-details
                 clearable
             ></v-text-field>
-        </div>
+        </div> -->
         <div class="tool_btns">
             <!-- <v-btn
                 @click="appEvent.onTheme"
