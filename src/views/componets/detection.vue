@@ -75,7 +75,5 @@ const handleUploadResults = (data: any) => {
 <style lang="scss" scoped>
 .detection-page {
     min-height: 100vh;
-    background-color: #f5f5f5;
-    padding: 16px;
 }
 </style>
