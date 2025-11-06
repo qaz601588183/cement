@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>智慧实验室 · 工作流程可视化</title>
+    <style>
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        background: radial-gradient(1200px 600px at 60% 40%, #e8f2ff 0%, #f5f9ff 60%, #ffffff 100%);
+        color: #1a3a5c;
+        overflow: hidden;
+      }
+      #app { position: fixed; inset: 0; }
+      /* 顶部标题与工具栏 */
+      .topbar {
+        position: absolute; left: 16px; right: 16px; top: 12px; z-index: 10;
+        display: flex; align-items: center; justify-content: space-between;
+        pointer-events: none;
+      }
+      .title {
+        pointer-events: auto;
+        font-weight: 700; letter-spacing: 0.5px; font-size: 18px;
+        color: #1a3a5c;
+        text-shadow: 0 2px 12px rgba(66, 135, 245, 0.15);
+      }
+      .controls {
+        pointer-events: auto;
+        display: flex; gap: 8px;
+      }
+      .btn {
+        appearance: none; border: 1px solid rgba(66, 135, 245, 0.35);
+        background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(245,249,255,0.95));
+        color: #1a3a5c; padding: 8px 12px; border-radius: 8px; font-size: 13px;
+        cursor: pointer; transition: all .2s ease;
+        box-shadow: 0 2px 8px rgba(66, 135, 245, 0.12);
+      }
+      .btn:hover { border-color: #4287f5; box-shadow: 0 4px 12px rgba(66, 135, 245, 0.25); }
+      .btn.small { padding: 6px 10px; font-size: 12px; }
+      .legend {
+        pointer-events: auto;
+        display: flex; gap: 12px; align-items: center;
+        padding: 8px 10px; border-radius: 8px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(245,249,255,0.85));
+        border: 1px solid rgba(66, 135, 245, 0.25);
+        box-shadow: 0 2px 8px rgba(66, 135, 245, 0.12);
+      }
+      .legend .item { display:flex; align-items:center; gap:6px; font-size:12px; color:#1a3a5c; }
+      .dot { width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 12px currentColor; }
+      /* 状态颜色映射：黄=已安排(scheduled/pending)、红=运行中(running)、绿=空闲(done/idle) */
+      .dot.pending { background:#ffd166; color:#ffd166; }
+      .dot.running { background:#ff4d4f; color:#ff4d4f; }
+      .dot.done { background:#51e1a5; color:#51e1a5; }
+      .dot.failed { background:#ff6b6b; color:#ff6b6b; }
+      /* 右侧信息面板 */
+      .sidepanel {
+        position: absolute; right: 16px; top: 58px; width: 320px; bottom: 16px; z-index: 9;
+        border-radius: 12px; overflow: hidden; pointer-events: auto;
+        background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(245,249,255,0.95));
+        border: 1px solid rgba(66, 135, 245, 0.25);
+        backdrop-filter: blur(6px);
+        box-shadow: 0 4px 16px rgba(66, 135, 245, 0.15);
+        display:flex; flex-direction:column;
+      }
+      .panel-header{ padding: 10px 12px; font-weight:600; border-bottom:1px solid rgba(66, 135, 245, 0.2); display:flex; gap:6px; align-items:center; }
+      .tabs { display:flex; gap:6px; }
+      .tab-btn { appearance:none; border:1px solid rgba(66, 135, 245, 0.28); background:rgba(245,249,255,0.8); color:#1a3a5c; border-radius:8px; padding:6px 8px; font-size:12px; cursor:pointer; }
+      .tab-btn.active { border-color:#4287f5; background:rgba(66, 135, 245, 0.15); }
+      .panel-content{ flex:1; overflow:auto; padding: 10px 12px; font-size: 12px; line-height: 1.55; }
+      .pane{ display:none; }
+      .pane.active{ display:block; }
+      .kv { display: grid; grid-template-columns: 88px 1fr; gap: 6px 10px; align-items: start; }
+      .muted { color:#5a7a9e; }
+      .log { margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(66, 135, 245, 0.25); white-space: pre-wrap; }
+      /* 设备列表样式 */
+      .device-list{ display:flex; flex-direction:column; gap:8px; }
+      .device-item{ border:1px solid rgba(66, 135, 245, 0.22); border-radius:8px; padding:8px; display:grid; grid-template-columns: 1fr auto; gap:8px; background: rgba(255,255,255,0.6); }
+      .chip{ border:1px solid rgba(66, 135, 245, 0.28); border-radius:12px; padding:2px 8px; font-size:11px; display:inline-flex; align-items:center; gap:6px; background: rgba(255,255,255,0.8); }
+      .chip .dot{ width:8px; height:8px; border-radius:50%; }
+      .bar{ height:6px; background:rgba(66, 135, 245, 0.18); border-radius:6px; overflow:hidden; }
+      .bar > span{ display:block; height:100%; background:linear-gradient(90deg, #4287f5, #6ba3ff); }
+      .grid2{ display:grid; grid-template-columns: 86px 1fr; gap:6px 10px; }
+      /* 材料面板样式 */
+      .materials{ display:flex; flex-direction:column; gap:10px; }
+      .mat-card{ border:1px solid rgba(66, 135, 245, 0.22); border-radius:10px; padding:8px; background: rgba(255,255,255,0.6); }
+      .mat-title{ font-weight:600; margin-bottom:6px; color:#1a3a5c; }
+      .mat-table{ width:100%; border-collapse: collapse; }
+      .mat-table th, .mat-table td{ text-align:left; padding:6px; font-size:12px; }
+      .mat-table th{ color:#5a7a9e; font-weight:500; }
+      .status-ok{ color:#51e1a5; }
+      .status-bad{ color:#ff6b6b; }
+      /* 预判面板样式 */
+      .predict-note{ color:#5a7a9e; font-size:12px; }
+      /* 栏目标签（系统分区） */
+      .zones { position:absolute; left:16px; right:360px; bottom:16px; display:flex; gap:24px; z-index:8; pointer-events:none; }
+      .zone {
+        flex:1; text-align:center; font-size:12px; color:#1a3a5c; letter-spacing:0.8px;
+      }
+      .zone span { display:inline-block; padding:6px 10px; border-radius:10px; border:1px solid rgba(66, 135, 245, 0.28);
+        background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(245,249,255,0.85));
+        box-shadow: 0 2px 8px rgba(66, 135, 245, 0.12);
+      }
+      /* 让 CSS2D 标签不抢鼠标事件 */
+      .label { pointer-events: none; color:#1a3a5c; font-size: 12px; text-shadow: 0 1px 8px rgba(66, 135, 245, 0.2); }
+      /* 覆盖层（拉伸视图） */
+      .overlay { position: fixed; inset: 0; display:none; align-items:center; justify-content:center; background: rgba(0, 0, 0, 0.45); backdrop-filter: blur(8px); z-index: 2000; }
+      .overlay.show { display:flex; }
+      .overlay-panel { width: 88vw; height: 90vh; border:1px solid rgba(66, 135, 245, 0.28); border-radius: 14px; background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(245,249,255,0.98)); box-shadow: 0 20px 60px rgba(66, 135, 245, 0.35); display:flex; flex-direction:column; overflow:hidden; }
+      .overlay-head { display:flex; align-items:center; justify-content:space-between; padding:12px 14px; border-bottom:1px solid rgba(66, 135, 245, 0.22); }
+      .overlay-title { font-weight:700; color:#1a3a5c; letter-spacing:0.6px; }
+      .overlay-close { appearance:none; border:1px solid rgba(66, 135, 245, 0.35); background:rgba(255,255,255,0.95); color:#1a3a5c; padding:6px 10px; border-radius:8px; cursor:pointer; font-size:12px; }
+      .overlay-close:hover { border-color:#4287f5; box-shadow: 0 2px 8px rgba(66, 135, 245, 0.25); }
+      .overlay-body { flex:1; overflow:auto; padding: 12px 14px; }
+      .overlay-pane { font-size: 13px; line-height: 1.6; }
+      .overlay-pane .grid2 { grid-template-columns: 120px 1fr; gap: 10px 14px; }
+      .overlay-pane .device-item { padding:12px; gap:12px; border-color: rgba(66, 135, 245, 0.35); box-shadow: 0 4px 16px rgba(66, 135, 245, 0.15); }
+      .overlay-pane .mat-table th, .overlay-pane .mat-table td { font-size:13px; padding:8px; }
+      .overlay-pane .mat-table tbody tr:nth-child(odd){ background: rgba(66, 135, 245, 0.06); }
+      .overlay-pane input[type="number"], .overlay-pane select { font-size:13px; padding:6px 8px; border-radius:8px; border:1px solid rgba(66, 135, 245, 0.3); background:rgba(255,255,255,0.8); color:#1a3a5c; }
+
+      /* 侧边面板拉伸条 */
+      .panel-resizer {
+        position: absolute; left: 0; top: 0; bottom: 0; width: 6px;
+        cursor: ew-resize; background: rgba(66, 135, 245, 0.12);
+        border-right: 1px solid rgba(66, 135, 245, 0.2);
+      }
+      .panel-resizer:hover { background: rgba(66, 135, 245, 0.25); }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <div class="topbar">
+      <div class="title">智慧实验室 · 工作流程可视化</div>
+      <div class="controls">
+        <button class="btn" id="btnPlay">开始检测</button>
+        <button class="btn" id="btnPause">暂停</button>
+        <button class="btn" id="btnReset">重置</button>
+        <button class="btn" id="btnAutoWF" style="display: none;">自动生成工作流</button>
+        <button class="btn small" id="btnLock">锁定视角</button>
+        <button class="btn small" id="btnUnlock">解锁视角</button>
+        <div class="legend">
+          <div class="item"><span class="dot pending"></span>已安排</div>
+          <div class="item"><span class="dot running"></span>运行中</div>
+          <div class="item"><span class="dot done"></span>空闲</div>
+          <div class="item"><span class="dot failed"></span>异常</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidepanel">
+      <div class="panel" id="infoPanel" style="position:relative; height:100%">
+        <div class="panel-resizer" id="panelResizer" title="拖拽左侧边拉伸宽度"></div>
+        <div class="panel-header">
+        <span>智慧实验室 · 状态总览</span>
+        <div class="tabs" style="margin-left:auto">
+          <button class="tab-btn active" data-tab="paneNode">节点</button>
+          <button class="tab-btn" data-tab="paneDevice">设备</button>
+          <button class="tab-btn" data-tab="paneProcess">流程</button>
+          <button class="tab-btn" data-tab="paneData">数据</button>
+          <button class="tab-btn" data-tab="paneMaterials">材料</button>
+          <button class="tab-btn" data-tab="panePredict">预判</button>
+          <button class="tab-btn" data-tab="paneAI">决策</button>
+          <button class="tab-btn" id="btnStretch" title="拉伸当前面板">拉伸</button>
+        </div>
+        </div>
+        <div class="panel-content">
+        <div id="paneNode" class="pane active">
+          <div class="kv">
+            <div class="muted">节点名称</div><div id="kvName">—</div>
+            <div class="muted">所属流程</div><div id="kvLane">—</div>
+            <div class="muted">状态</div><div id="kvStatus">—</div>
+            <div class="muted">说明</div><div id="kvDesc">点击节点可在“已安排→运行中→空闲”间切换</div>
+          </div>
+          <div class="log" id="log">日志：
+          </div>
+        </div>
+        <div id="paneDevice" class="pane">
+          <div class="device-list" id="deviceList"></div>
+        </div>
+        <div id="paneProcess" class="pane">
+          <div class="grid2">
+            <div class="muted">进行中</div><div id="procRunning">0</div>
+            <div class="muted">已完成</div><div id="procDone">0</div>
+            <div class="muted">异常</div><div id="procFailed">0</div>
+          </div>
+          <div style="margin-top:8px" class="bar"><span id="procProgress" style="width:0%"></span></div>
+        </div>
+        <div id="paneData" class="pane">
+          <div class="grid2">
+            <div class="muted">吞吐量</div><div id="mThroughput">—</div>
+            <div class="muted">错误率</div><div id="mErrorRate">—</div>
+            <div class="muted">平均延迟</div><div id="mLatency">—</div>
+            <div class="muted">队列积压</div><div id="mBacklog">—</div>
+          </div>
+        </div>
+        <div id="paneMaterials" class="pane">
+          <div id="materialsList" class="materials"></div>
+        </div>
+        <div id="panePredict" class="pane">
+          <div class="grid2">
+            <div class="muted">目标强度</div>
+            <div><input id="pTarget" type="number" min="20" max="60" step="1" value="40" style="width:100px"> MPa</div>
+            <div class="muted">坍落度目标</div>
+            <div><input id="pSlump" type="number" min="80" max="220" step="10" value="160" style="width:100px"> mm</div>
+            <div class="muted">泵送</div>
+            <div>
+              <select id="pPumpSelect" style="width:110px">
+                <option value="no">非泵送</option>
+                <option value="yes" selected>泵送</option>
+              </select>
+            </div>
+            <div class="muted">砂率</div>
+            <div>
+              <input id="pSand" type="range" min="0.35" max="0.55" step="0.01" value="0.44" style="width:140px">
+              <span id="pSandVal">44%</span>
+            </div>
+            <div class="muted">烘干时间</div>
+            <div><input id="pDryTime" type="number" min="20" max="120" step="5" value="60" style="width:100px"> min</div>
+            <div class="muted">筛分效率</div>
+            <div><input id="pSieveEff" type="number" min="60" max="98" step="1" value="85" style="width:100px"> %</div>
+            <div class="muted">水胶比</div><div id="pWBR">—</div>
+            <div class="muted">胶凝材料</div><div id="pBinder">—</div>
+            <div class="muted">水</div><div id="pWater">—</div>
+            <div class="muted">水泥</div><div id="pCement">—</div>
+            <div class="muted">粉煤灰</div><div id="pFlyAsh">—</div>
+            <div class="muted">矿渣粉</div><div id="pSlag">—</div>
+            <div class="muted">外加剂</div><div id="pSP">—</div>
+            <div class="muted">粗骨料</div><div id="pCoarse">—</div>
+            <div class="muted">细骨料</div><div id="pFine">—</div>
+          </div>
+          <div id="pNote" class="predict-note" style="margin-top:6px"></div>
+        </div>
+        <div id="paneAI" class="pane">
+          <div id="aiAdvice">暂无建议</div>
+        </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="zones">
+      <div class="zone"><span>集料智慧检测室</span></div>
+      <div class="zone"><span>MES 系统</span></div>
+      <div class="zone"><span>TIC 系统</span></div>
+    </div>
+
+    <!-- 拉伸填充覆盖层 -->
+    <div id="overlay" class="overlay" role="dialog" aria-modal="true">
+      <div class="overlay-panel" id="overlayPanel">
+        <div class="overlay-head">
+          <div class="overlay-title" id="overlayTitle">拉伸视图</div>
+          <button class="overlay-close" id="overlayClose">关闭</button>
+        </div>
+        <div class="overlay-body">
+          <div id="overlayContent"></div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      // 统一使用 unpkg 的 ?module 以重写 bare specifier("three")
+      import * as THREE from 'https://unpkg.com/three@0.162.0?module';
+      import { OrbitControls } from 'https://unpkg.com/three@0.162.0/examples/jsm/controls/OrbitControls.js?module';
+      import { CSS2DRenderer, CSS2DObject } from 'https://unpkg.com/three@0.162.0/examples/jsm/renderers/CSS2DRenderer.js?module';
+
+      // —— 数据：根据图片提炼的泳道与步骤（可后续按真实流程微调）
+      const workflow = [
+        { title: '1.筛分', color: '#5aa7ff', steps: ['烘干', '称重', '筛分', '称取筛余质量'] },
+        { title: '2.含混量', color: '#ff7db0', steps: ['烘干', '称重', '水洗', '烘干', '称重'] },
+        { title: '3.混拌含量', color: '#8ad1a3', steps: ['称重', '水洗', '烘干', '称重'] },
+        { title: '4.针片状', color: '#7ec7ff', steps: ['外观检查', '选择塞率识别', '称重（针片状颗粒与非针片状颗粒）'] },
+        { title: '5.压碎值', color: '#ffbc6e', steps: ['剔除针片状颗粒', '烘干', '标定并加载', '筛分', '称重'] },
+        // 右侧：数据上传与报告生成（作为一个汇总泳道）
+        { title: '数据上传与报告', color: '#b59dff', steps: ['数据上传系统', '数据处理', '出具报告'] }
+      ];
+
+      // —— 颜色与状态配置
+      const STATUS = { pending: 'pending', running: 'running', done: 'done', failed: 'failed' };
+      // 顶部指示块颜色映射（仪器状态：黄=已安排、红=运行、绿=空闲）
+      const STATUS_COLOR = {
+        pending: new THREE.Color('#ffd166'),
+        running: new THREE.Color('#ff4d4f'),
+        done: new THREE.Color('#51e1a5'),
+        failed: new THREE.Color('#ff6b6b')
+      };
+      const NODE_BODY_COLOR = new THREE.Color('#4b5d78');
+
+      // —— 基础 Three.js 初始化
+      const app = document.getElementById('app');
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setClearColor(0xf5f9ff, 1);
+      app.appendChild(renderer.domElement);
+
+      const labelRenderer = new CSS2DRenderer();
+      labelRenderer.setSize(window.innerWidth, window.innerHeight);
+      labelRenderer.domElement.style.position = 'absolute';
+      labelRenderer.domElement.style.top = '0px';
+      app.appendChild(labelRenderer.domElement);
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.set(12, 8, 65);  // 正前方视角：X=中心, Y=略高, Z=远距离
+      const controls = new OrbitControls(camera, labelRenderer.domElement);
+      controls.enableDamping = true;
+      controls.target.set(12, 0, 0);
+      // 默认锁定视角
+      function lockView(lock=true){
+        controls.enabled = !lock;
+      }
+      lockView(true);
+
+      const ambient = new THREE.AmbientLight(0xffffff, 0.75);
+      const dir = new THREE.DirectionalLight(0xffffff, 0.95);
+      dir.position.set(22, 40, 18);
+      scene.add(ambient, dir);
+
+      // 背景网格与分区线
+      const grid = new THREE.GridHelper(140, 14, 0x4287f5, 0xd0e4ff);
+      grid.position.y = -3;
+      scene.add(grid);
+
+      // —— 泳道与节点生成
+      const lanesGroup = new THREE.Group();
+      scene.add(lanesGroup);
+
+      const laneLength = 60; // X 方向长度
+      const laneSpacing = 8; // Y 方向间距
+      const startX = -16;    // 起始 X
+
+      // 保存节点引用以便交互
+      const nodes = []; // { mesh, laneIndex, stepIndex, title, laneTitle, status }
+      const lanePoints = new Map(); // laneTitle -> world positions array
+
+      function makeRoundedRect(w, h, r, color) {
+        const shape = new THREE.Shape();
+        shape.moveTo(-w/2 + r, -h/2);
+        shape.lineTo(w/2 - r, -h/2);
+        shape.quadraticCurveTo(w/2, -h/2, w/2, -h/2 + r);
+        shape.lineTo(w/2, h/2 - r);
+        shape.quadraticCurveTo(w/2, h/2, w/2 - r, h/2);
+        shape.lineTo(-w/2 + r, h/2);
+        shape.quadraticCurveTo(-w/2, h/2, -w/2, h/2 - r);
+        shape.lineTo(-w/2, -h/2 + r);
+        shape.quadraticCurveTo(-w/2, -h/2, -w/2 + r, -h/2);
+        const geom = new THREE.ShapeGeometry(shape);
+        const mat = new THREE.MeshStandardMaterial({ color, transparent:true, opacity:0.25, roughness:0.85, metalness:0.1 });
+        return new THREE.Mesh(geom, mat);
+      }
+
+      function addLabel(text) {
+        const div = document.createElement('div');
+        div.className = 'label';
+        div.textContent = text;
+        const label = new CSS2DObject(div);
+        label.position.set(0, 1.6, 0);
+        return label;
+      }
+
+      function createLane(laneIndex, lane) {
+        const g = new THREE.Group();
+        const y = (workflow.length/2 - laneIndex) * laneSpacing;
+        g.position.set(0, y, 0);
+
+        // 背板
+        const board = makeRoundedRect(laneLength + 6, 5.2, 1.0, lane.color);
+        board.position.set(startX + laneLength/2, 0, 0);
+        board.receiveShadow = true;
+        g.add(board);
+
+        // 泳道标题
+        const titleLabel = addLabel(lane.title);
+        titleLabel.position.set(startX - 6, 0.2, 0);
+        g.add(titleLabel);
+
+        // 步骤节点与连线
+        const stepCount = lane.steps.length;
+        const stepSpacing = laneLength / (stepCount + 1);
+
+        let prevPos = null;
+        const worldPositions = [];
+        for (let i = 0; i < stepCount; i++) {
+          const x = startX + stepSpacing * (i + 1);
+          // 仪器主体：立方体
+          const bodyGeom = new THREE.BoxGeometry(1.6, 1.2, 1.2);
+          const bodyMat  = new THREE.MeshStandardMaterial({ color: NODE_BODY_COLOR, emissive: new THREE.Color(lane.color).multiplyScalar(0.25), roughness:0.35, metalness:0.65 });
+          const body = new THREE.Mesh(bodyGeom, bodyMat);
+          body.position.set(x, 0.6, 0);
+          body.castShadow = true;
+          body.userData = { isNode:true, laneIndex, stepIndex: i, laneTitle: lane.title, title: lane.steps[i], status: STATUS.pending };
+          g.add(body);
+
+          // 顶部状态指示块
+          const indicatorGeom = new THREE.BoxGeometry(1.2, 0.12, 1.2);
+          const indicatorMat  = new THREE.MeshStandardMaterial({ color: STATUS_COLOR.pending, roughness:0.35, metalness:0.2 });
+          const indicator = new THREE.Mesh(indicatorGeom, indicatorMat);
+          indicator.position.set(0, 0.72, 0);
+          indicator.userData = { isIndicator:true };
+          body.add(indicator);
+          body.userData.indicator = indicator;
+
+          const label = addLabel(lane.steps[i]);
+          body.add(label);
+
+          nodes.push(body);
+          const wp = new THREE.Vector3();
+          body.getWorldPosition(wp);
+          worldPositions.push(wp);
+
+          if (prevPos) {
+            const points = [ prevPos.clone(), body.position.clone() ];
+            const geom = new THREE.BufferGeometry().setFromPoints(points);
+            const line = new THREE.Line(geom, new THREE.LineBasicMaterial({ color: lane.color, transparent:true, opacity:0.8 }));
+            g.add(line);
+          }
+          prevPos = body.position;
+        }
+        lanePoints.set(lane.title, worldPositions);
+        lanesGroup.add(g);
+      }
+
+      workflow.forEach((lane, idx) => createLane(idx, lane));
+
+      // —— 交互：点击切换状态；悬停高亮
+      const raycaster = new THREE.Raycaster();
+      const mouse = new THREE.Vector2();
+      let hovered = null;
+      // 提前声明流动粒子集合，避免 TDZ 错误
+      var flows = [];
+      // 提前声明数据指标，避免 TDZ 错误
+      var metrics = { throughput: 0, errorRate: 0, latency: 0, backlog: 0 };
+      var metricClock = 0;
+
+      function resolveNode(obj){
+        let m = obj;
+        while (m && (!m.userData || !m.userData.isNode) && m.parent) m = m.parent;
+        return m;
+      }
+
+      function setNodeStatus(obj, status) {
+        const mesh = resolveNode(obj);
+        if(!mesh || !mesh.userData || !mesh.userData.isNode) return;
+        mesh.userData.status = status;
+        if (mesh.userData.indicator) {
+          mesh.userData.indicator.material.color.copy(STATUS_COLOR[status]);
+        }
+        document.getElementById('kvName').textContent = mesh.userData.title;
+        document.getElementById('kvLane').textContent = mesh.userData.laneTitle;
+        document.getElementById('kvStatus').textContent = status;
+        appendLog(`[${mesh.userData.laneTitle}] ${mesh.userData.title} → ${status}`);
+        
+        // 当状态变为 done 时，向父窗口发送消息
+        if (status === STATUS.done) {
+          notifyParentWindow({
+            type: 'experimentComplete',
+            data: {
+              laneTitle: mesh.userData.laneTitle,
+              stepTitle: mesh.userData.title,
+              laneIndex: mesh.userData.laneIndex,
+              stepIndex: mesh.userData.stepIndex,
+              timestamp: new Date().toISOString()
+            }
+          });
+        }
+      }
+      
+      // 向父窗口发送消息的函数
+      function notifyParentWindow(message) {
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage(message, '*');
+        }
+      }
+
+      function cycleStatus(obj) {
+        const mesh = resolveNode(obj);
+        const order = [STATUS.pending, STATUS.running, STATUS.done]; // 黄→红→绿
+        const idx = order.indexOf(mesh.userData.status);
+        const next = order[(idx + 1) % order.length];
+        setNodeStatus(mesh, next);
+      }
+
+      function appendLog(text) {
+        const log = document.getElementById('log');
+        const s = log.textContent.trim();
+        log.textContent = (s ? s + '\n' : '') + text;
+      }
+
+      function onMove(ev) {
+        const rect = renderer.domElement.getBoundingClientRect();
+        mouse.x = ((ev.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((ev.clientY - rect.top) / rect.height) * 2 + 1;
+      }
+      function onClick() {
+        raycaster.setFromCamera(mouse, camera);
+        const hits = raycaster.intersectObjects(nodes, true);
+        if (hits.length) {
+          const mesh = resolveNode(hits[0].object);
+          cycleStatus(mesh);
+        }
+      }
+
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('click', onClick);
+
+      // 悬停光晕效果
+      function updateHover() {
+        raycaster.setFromCamera(mouse, camera);
+        const hits = raycaster.intersectObjects(nodes, true);
+        if (hits.length) {
+          const m = resolveNode(hits[0].object);
+          if (hovered !== m) {
+            if (hovered) hovered.material.emissiveIntensity = 0.25;
+            hovered = m;
+            hovered.material.emissiveIntensity = 0.8;
+          }
+        } else {
+          if (hovered) hovered.material.emissiveIntensity = 0.25;
+          hovered = null;
+        }
+      }
+
+      // —— 模拟播放与重置
+      const btnPlay = document.getElementById('btnPlay');
+      const btnReset = document.getElementById('btnReset');
+
+      btnPlay.addEventListener('click', async () => {
+        startSimulation();
+      });
+
+      const btnPause = document.getElementById('btnPause');
+      btnReset.addEventListener('click', () => {
+        for (const mesh of nodes) setNodeStatus(mesh, STATUS.pending);
+        document.getElementById('kvName').textContent = '—';
+        document.getElementById('kvLane').textContent = '—';
+        document.getElementById('kvStatus').textContent = '—';
+        document.getElementById('log').textContent = '日志：';
+        clearFlows();
+        updateProcessStats();
+        autoWorkflowAdded = false;
+      });
+
+      document.getElementById('btnLock').addEventListener('click', () => lockView(true));
+      document.getElementById('btnUnlock').addEventListener('click', () => lockView(false));
+      document.getElementById('btnAutoWF').addEventListener('click', generateWorkflowFromIdleDevices);
+
+      // —— 侧边面板左侧拉伸
+      const sidepanelEl = document.querySelector('.sidepanel');
+      const resizerEl = document.getElementById('panelResizer');
+      let resizing = false; let resizeStartX = 0; let startW = 0;
+      function onResizeMove(e){
+        if (!resizing) return;
+        const dx = resizeStartX - e.clientX; // 向左拖动会增大 dx
+        const minW = 280;
+        const maxW = Math.min(window.innerWidth - 140, 720);
+        const w = Math.max(minW, Math.min(maxW, startW + dx));
+        sidepanelEl.style.width = w + 'px';
+        // 同步底部 zones 的右侧留白
+        const zonesEl = document.querySelector('.zones');
+        if (zonesEl) zonesEl.style.right = (w + 40) + 'px';
+      }
+      function stopResize(){
+        resizing = false;
+        document.body.style.cursor = '';
+        window.removeEventListener('mousemove', onResizeMove);
+        window.removeEventListener('mouseup', stopResize);
+      }
+      resizerEl.addEventListener('mousedown', (e)=>{
+        resizing = true; resizeStartX = e.clientX; startW = parseInt(getComputedStyle(sidepanelEl).width, 10);
+        document.body.style.cursor = 'ew-resize';
+        window.addEventListener('mousemove', onResizeMove);
+        window.addEventListener('mouseup', stopResize);
+      });
+
+      // —— 动画循环
+      const clock = new THREE.Clock();
+      let paused = false;
+      btnPause.addEventListener('click', ()=>{ paused = !paused; btnPause.textContent = paused ? '继续' : '暂停'; });
+
+      function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        
+        // 检查是否所有实验都已完成，如果是则暂停动画
+        if (!paused && !checkAllExperimentsCompleted()){
+          updateHover();
+          updateFlows(clock.getDelta());
+          tickMetrics();
+        } else if (checkAllExperimentsCompleted()) {
+          // 所有实验完成后，停止流动粒子但保持渲染
+          // 可以选择显示完成状态
+          updateHover();
+        }
+        
+        renderer.render(scene, camera);
+        labelRenderer.render(scene, camera);
+      }
+      animate();
+
+      // 检查是否所有实验都已完成
+      function checkAllExperimentsCompleted() {
+        return nodes.every(n => n.userData.status === STATUS.done || n.userData.status === STATUS.failed);
+      }
+
+      // 响应式
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        labelRenderer.setSize(window.innerWidth, window.innerHeight);
+      });
+
+      // 方便快速调试
+      window.__WF__ = { THREE, scene, camera, renderer, nodes, setNodeStatus };
+
+      // =====================
+      // 设备管理与模拟状态
+      // =====================
+      const devices = [
+        { id:'dryer-01', name:'烘干机#01', type:'烘干', status:'idle', online:true, health:0.95 },
+        { id:'scale-01', name:'电子秤#01', type:'称重', status:'idle', online:true, health:0.98 },
+        { id:'washer-01', name:'水洗机#01', type:'水洗', status:'idle', online:true, health:0.93 },
+        { id:'sieve-01', name:'筛分机#01', type:'筛分', status:'idle', online:true, health:0.96 },
+        { id:'loader-01', name:'加载器#01', type:'加载', status:'idle', online:true, health:0.92 },
+        { id:'uplink-01', name:'数据上传网关', type:'网络', status:'idle', online:true, health:0.99 }
+      ];
+
+      const DEVICE_BY_STEP = {
+        '烘干': ['dryer-01'],
+        '称重': ['scale-01'],
+        '水洗': ['washer-01'],
+        '筛分': ['sieve-01'],
+        '标定并加载': ['loader-01'],
+        '数据上传系统': ['uplink-01']
+      };
+
+      function renderDevices(){
+        const list = document.getElementById('deviceList');
+        list.innerHTML = '';
+        for(const d of devices){
+          const div = document.createElement('div');
+          div.className = 'device-item';
+          const left = document.createElement('div');
+          left.innerHTML = `<div style="font-weight:600">${d.name}</div>
+                            <div class="muted">类型：${d.type} · 在线：${d.online ? '是' : '否'}</div>
+                            <div class="bar"><span style="width:${Math.round(d.health*100)}%"></span></div>`;
+          const right = document.createElement('div');
+          const color = d.status==='running' ? '#ff4d4f' : d.status==='fault' ? '#ff6b6b' : '#51e1a5';
+          right.innerHTML = `<span class="chip"><span class="dot" style="background:${color}"></span>${d.status}</span>`;
+          div.appendChild(left); div.appendChild(right);
+          list.appendChild(div);
+        }
+      }
+
+      // —— 根据绿色设备（idle）自动生成一个新的工作流泳道
+      let autoWorkflowAdded = false;
+      function generateWorkflowFromIdleDevices(){
+        const idleDevices = devices.filter(d=>d.status==='idle');
+        if(!idleDevices.length){ appendLog('暂无空闲设备，无法生成自动工作流'); return; }
+        if (autoWorkflowAdded) { appendLog('自动工作流已存在'); return; }
+        const lane = { title: '自动派工（空闲设备）', color: '#66c2ff', steps: idleDevices.map(d=>d.name) };
+        workflow.push(lane);
+        createLane(workflow.length-1, lane);
+        spawnFlowForLane(lane);
+        autoWorkflowAdded = true;
+        appendLog('已根据空闲设备生成自动工作流泳道');
+      }
+
+      // =====================
+      // 流程动态：流动粒子动画
+      // =====================
+      // flows 在上文已声明
+      // InstancedMesh 路径追踪版，支持拥塞/分流的高并发粒子效果
+      const _dummy = new THREE.Object3D();
+      function buildCurve(points){
+        // 使用 CatmullRomCurve3 平滑路径
+        return new THREE.CatmullRomCurve3(points.map(p=>p.clone()), false, 'catmullrom', 0.4);
+      }
+      function spawnFlowForLane(lane){
+        const points = lanePoints.get(lane.title);
+        if(!points || points.length < 2) return;
+        const curve = buildCurve(points);
+        const count = 120; // 初始并发，后续由吞吐量/拥塞在 updateFlows 中调速
+        const geo = new THREE.SphereGeometry(0.25, 16, 16);
+        const mat = new THREE.MeshStandardMaterial({ color: new THREE.Color(lane.color), emissive:new THREE.Color(lane.color).multiplyScalar(0.6) });
+        const mesh = new THREE.InstancedMesh(geo, mat, count);
+        mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+        scene.add(mesh);
+        const speeds = new Float32Array(count);
+        const offsets = new Float32Array(count);
+        const jitter = new Float32Array(count);
+        for(let i=0;i<count;i++){
+          speeds[i] = 0.35 + Math.random()*0.65; // 0.35~1.0 基础速度
+          offsets[i] = Math.random();            // 起始位置 0~1
+          jitter[i] = (Math.random()-0.5) * 0.18; // Z 方向轻微抖动，形成分流层次
+          const pos = curve.getPointAt(offsets[i]);
+          _dummy.position.set(pos.x, pos.y, pos.z + jitter[i]);
+          _dummy.scale.setScalar(0.22);
+          _dummy.updateMatrix();
+          mesh.setMatrixAt(i, _dummy.matrix);
+        }
+        mesh.instanceMatrix.needsUpdate = true;
+        flows.push({ type:'instanced', mesh, curve, speeds, offsets, jitter, laneTitle: lane.title, active:true });
+      }
+      function updateFlows(dt){
+        const speedFactor = 0.6 + Math.min(1.5, metrics.throughput/200); // 吞吐量驱动速度
+        const scaleBase = metrics.backlog > 22 ? 0.30 : 0.22;            // 积压高→粒子更显眼
+        for(const f of flows){
+          if(!f.active) continue;
+          const count = f.offsets.length;
+          for(let i=0;i<count;i++){
+            f.offsets[i] = (f.offsets[i] + f.speeds[i]*speedFactor*dt) % 1;
+            const t = f.offsets[i];
+            const pos = f.curve.getPointAt(t);
+            _dummy.position.set(pos.x, pos.y, pos.z + f.jitter[i]);
+            _dummy.scale.setScalar(scaleBase);
+            _dummy.updateMatrix();
+            f.mesh.setMatrixAt(i, _dummy.matrix);
+          }
+          f.mesh.instanceMatrix.needsUpdate = true;
+        }
+      }
+      function clearFlows(){
+        for(const f of flows){ if(f.mesh) scene.remove(f.mesh); }
+        flows.length = 0;
+      }
+
+      // =====================
+      // 模拟器：流程驱动与统计
+      // =====================
+      function startSimulation(){
+        appendLog('开始模拟播放…');
+        clearFlows();
+        for (const mesh of nodes) setNodeStatus(mesh, STATUS.pending);
+        // 设备置为运行
+        devices.forEach(d=>d.status='running');
+        renderDevices();
+        // 为每条泳道启动流动粒子
+        workflow.forEach(lane => spawnFlowForLane(lane));
+        // 顺序完成每个节点（不阻塞动画）
+        (async () => {
+          for (const laneTitle of workflow.map(l => l.title)) {
+            const laneMeshes = nodes
+              .filter(n => n.userData.laneTitle === laneTitle)
+              .sort((a,b)=>a.userData.stepIndex - b.userData.stepIndex);
+            for (const m of laneMeshes) {
+              setNodeStatus(m, STATUS.running);
+              await new Promise(r => setTimeout(r, 480));
+              // 随机故障示意
+              if (Math.random() < 0.06) { setNodeStatus(m, STATUS.failed); appendLog(`[告警] ${m.userData.title} 出现异常`); }
+              else { setNodeStatus(m, STATUS.done); }
+              updateProcessStats();
+            }
+          }
+          appendLog('模拟播放完成。');
+          btnPause.click();
+          devices.forEach(d=>d.status='idle');
+          renderDevices();
+          // 自动生成工作流（基于空闲设备）
+          generateWorkflowFromIdleDevices();
+          
+          // 向父窗口发送所有实验完成的消息
+          notifyParentWindow({
+            type: 'allExperimentsComplete',
+            data: {
+              totalExperiments: workflow.length,
+              timestamp: new Date().toISOString(),
+              summary: getExperimentsSummary()
+            }
+          });
+        })();
+      }
+      
+      // 获取实验摘要信息
+      function getExperimentsSummary() {
+        return workflow.map(lane => ({
+          title: lane.title,
+          stepCount: lane.steps.length,
+          completedSteps: nodes.filter(n => 
+            n.userData.laneTitle === lane.title && 
+            n.userData.status === STATUS.done
+          ).length,
+          failedSteps: nodes.filter(n => 
+            n.userData.laneTitle === lane.title && 
+            n.userData.status === STATUS.failed
+          ).length
+        }));
+      }
+
+      function updateProcessStats(){
+        let running=0, done=0, failed=0;
+        for(const n of nodes){
+          if(n.userData.status===STATUS.running) running++;
+          else if(n.userData.status===STATUS.done) done++;
+          else if(n.userData.status===STATUS.failed) failed++;
+        }
+        document.getElementById('procRunning').textContent = running;
+        document.getElementById('procDone').textContent = done;
+        document.getElementById('procFailed').textContent = failed;
+        const total = nodes.length; const progress = Math.round(done/total*100);
+        document.getElementById('procProgress').style.width = progress+'%';
+      }
+
+      // =====================
+      // 数据状态与辅助决策
+      // =====================
+      // metrics/metricClock 已在上文声明
+      function tickMetrics(){
+        metricClock += 1;
+        if(metricClock % 30 !== 0) return; // 稍低频率更新
+        // 模拟数据指标
+        metrics.throughput = 80 + Math.round(Math.random()*120);
+        metrics.errorRate = +(Math.random()*0.06).toFixed(3);
+        metrics.latency = 120 + Math.round(Math.random()*80);
+        metrics.backlog = Math.round(Math.random()*30);
+        document.getElementById('mThroughput').textContent = metrics.throughput+' msg/min';
+        document.getElementById('mErrorRate').textContent = Math.round(metrics.errorRate*100)/100+'%';
+        document.getElementById('mLatency').textContent = metrics.latency+' ms';
+        document.getElementById('mBacklog').textContent = metrics.backlog+' 项';
+        // 刷新材料面板
+        renderMaterials();
+        // 规则驱动建议
+        const adv = [];
+        const anyFault = devices.some(d=>d.status==='fault' || !d.online);
+        if (metrics.errorRate > 0.05) adv.push('错误率偏高：建议复核称重与水洗流程采样参数');
+        if (metrics.backlog > 20) adv.push('队列积压明显：建议提升数据上传并行度或限流');
+        if (metrics.latency > 180) adv.push('延迟偏高：建议在非关键节点开启异步写入');
+        if (anyFault) adv.push('设备异常：建议切换至备用设备并触发巡检工单');
+        // 材料指标正常，不再显示超标警示
+        // if (materialAlerts.length) adv.push('材料超标警示：请复核来料与配比，关注 '+materialAlerts.join('、'));
+        if (processAlerts.length) adv.push(...processAlerts);
+        if (materialAlerts.length === 0 && !anyFault && metrics.errorRate <= 0.05 && metrics.backlog <= 20 && metrics.latency <= 180) {
+          adv.push('所有材料指标正常，系统运行稳定');
+        }
+        document.getElementById('aiAdvice').textContent = adv.length? ('建议：\n- '+adv.join('\n- ')) : '所有指标正常，系统运行良好';
+      }
+
+      // 设备随机事件（每 5s 左右触发一次小概率故障/恢复）
+      setInterval(()=>{
+        if (paused) return;
+        const d = devices[Math.floor(Math.random()*devices.length)];
+        const r = Math.random();
+        if (r < 0.08) { d.status = 'fault'; appendLog(`[设备故障] ${d.name}`); }
+        else if (r < 0.16) { d.status = 'running'; }
+        else { d.status = 'idle'; }
+        renderDevices();
+      }, 5200);
+
+      // =====================
+      // 面板页签切换
+      // =====================
+      document.querySelectorAll('.tab-btn').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+          btn.classList.add('active');
+          const id = btn.dataset.tab;
+          document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
+          document.getElementById(id).classList.add('active');
+        });
+      });
+
+      // 初始渲染设备面板
+      renderDevices();
+
+      // =====================
+      // 材料参数与阈值校验
+      // =====================
+      var materials = [
+        { key:'cement', name:'水泥 (cement)', items:[
+          {name:'不溶物', unit:'%', op:'<=', limit:1.5},
+          {name:'氧化镁', unit:'%', op:'<=', limit:5.0},
+          {name:'氧化硫', unit:'%', op:'<=', limit:4.0}
+        ]},
+        { key:'fly_ash', name:'粉煤灰 (fly_ash)', items:[
+          {name:'烧失量', unit:'%', op:'<=', limit:5.0},
+          {name:'含水量', unit:'%', op:'<=', limit:1.0},
+          {name:'三氧化硫', unit:'%', op:'<=', limit:3.0}
+        ]},
+        { key:'blast_furnace_slag', name:'高炉矿渣 (blast_furnace_slag)', items:[
+          {name:'三氧化硫', unit:'%', op:'<=', limit:4.0},
+          {name:'氯离子', unit:'%', op:'<=', limit:0.06}
+        ]},
+        { key:'water', name:'水 (water)', items:[
+          {name:'pH', unit:'', op:'>=', limit:4.5},
+          {name:'不溶物', unit:'mg/L', op:'<=', limit:2000}
+        ]},
+        { key:'superplasticizer', name:'高效减水剂 (superplasticizer)', items:[
+          {name:'含水率(粉体)', unit:'%', op:'<=', limit:5.0},
+          {name:'密度(液体)', unit:'g/cm³', op:'±', target:1.10, tolerance:0.03}
+        ]},
+        { key:'coarse_aggregate', name:'粗骨料 (coarse_aggregate)', items:[
+          {name:'针片状颗粒含量', unit:'%', op:'<=', limit:15.0},
+          {name:'含泥量', unit:'%', op:'<=', limit:2.0},
+          {name:'压碎指标', unit:'%', op:'<=', limit:10.0}
+        ]},
+        { key:'fine_aggregate', name:'细骨料 (fine_aggregate)', items:[
+          {name:'含泥量', unit:'%', op:'<=', limit:3.0},
+          {name:'云母含量', unit:'%', op:'<=', limit:2.0},
+          {name:'氯离子含量', unit:'%', op:'<=', limit:0.02}
+        ]}
+      ];
+
+      var materialAlerts = []; // 供“决策”页签引用
+      var processAlerts = [];  // 由预判面板工艺因子生成的建议
+
+      function fmt(val, unit){
+        if (unit === 'mg/L') return Math.round(val) + ' mg/L';
+        if (unit === 'g/cm³') return (Math.round(val*1000)/1000).toFixed(3) + ' g/cm³';
+        if (unit === '%') return (Math.round(val*100)/100).toFixed(2) + '%';
+        return (Math.round(val*100)/100) + (unit||'');
+      }
+
+      function check(op, value, limit, target, tolerance){
+        if(op==='<=') return value <= limit;
+        if(op==='>=') return value >= limit;
+        if(op==='±') return Math.abs(value - target) <= tolerance;
+        return true;
+      }
+
+      function genValue(op, limit, unit, target, tolerance){
+        // 生成正常范围内的值，确保所有指标合格
+        let v = limit || target || 0;
+        if(op==='<='){
+          // 生成在 60%~95% 限值范围内的值，确保不超标
+          v = limit * (0.6 + Math.random()*0.35); // 0.6~0.95 * limit
+        } else if(op==='>='){
+          // 生成在 限值~170% 范围内的值，确保达标
+          v = limit * (1.0 + Math.random()*0.7); // 1.0~1.7 * limit
+          // pH 合理范围
+          if(unit==='' && limit===4.5) v = Math.min(8.5, Math.max(limit, v));
+        } else if(op==='±'){
+          // 生成在容差范围内的值
+          v = target + (Math.random()*2 - 1) * (tolerance*0.8); // 在 80% 容差范围内
+        }
+        return v;
+      }
+
+      function renderMaterials(){
+        const wrap = document.getElementById('materialsList');
+        if(!wrap) return;
+        wrap.innerHTML = '';
+        materialAlerts = [];
+        for(const m of materials){
+          const card = document.createElement('div'); card.className = 'mat-card';
+          const title = document.createElement('div'); title.className = 'mat-title'; title.textContent = m.name;
+          const table = document.createElement('table'); table.className = 'mat-table';
+          table.innerHTML = '<thead><tr><th>项目</th><th>实测值</th><th>阈值/范围</th><th>状态</th></tr></thead>';
+          const tbody = document.createElement('tbody');
+          for(const it of m.items){
+            const val = genValue(it.op, it.limit, it.unit, it.target, it.tolerance);
+            const ok = check(it.op, val, it.limit, it.target, it.tolerance);
+            const tr = document.createElement('tr');
+            const limitText = it.op==='±' ? `±${it.tolerance} ${it.unit}（目标 ${it.target} ${it.unit}）` : `${it.op}${it.limit}${it.unit}`;
+            tr.innerHTML = `<td>${it.name}</td><td>${fmt(val, it.unit)}</td><td>${limitText}</td><td class="${ok?'status-ok':'status-bad'}">${ok?'合格':'超标'}</td>`;
+            tbody.appendChild(tr);
+            if(!ok){ materialAlerts.push(`${m.name}-${it.name} 超标`); }
+          }
+          table.appendChild(tbody);
+          card.appendChild(title); card.appendChild(table);
+          wrap.appendChild(card);
+        }
+      }
+
+      // 初始渲染材料面板
+      renderMaterials();
+
+      // =====================
+      // 预判模型：由目标强度推导初步配比（演示版）
+      // =====================
+      function clamp(v, min, max){ return Math.min(max, Math.max(min, v)); }
+      function interpWBR(ts){
+        const map = [ {f:20,w:0.60}, {f:30,w:0.50}, {f:40,w:0.45}, {f:50,w:0.40}, {f:60,w:0.35} ];
+        if(ts<=map[0].f) return map[0].w; if(ts>=map[map.length-1].f) return map[map.length-1].w;
+        for(let i=0;i<map.length-1;i++){
+          const a=map[i], b=map[i+1];
+          if(ts>=a.f && ts<=b.f){ const t=(ts-a.f)/(b.f-a.f); return +(a.w + t*(b.w-a.w)).toFixed(3); }
+        }
+        return 0.45;
+      }
+
+      function calcPrediction(ts){
+        const slump = +(document.getElementById('pSlump')?.value || 160);
+        const pump = (document.getElementById('pPumpSelect')?.value || 'yes') === 'yes';
+        const sandRatio = +(document.getElementById('pSand')?.value || 0.44); // 0.35~0.55
+        const dryTime = +(document.getElementById('pDryTime')?.value || 60);
+        const sieveEff = +(document.getElementById('pSieveEff')?.value || 85);
+        const wbrBase = clamp(interpWBR(ts), 0.32, 0.65);
+        let wbr = wbrBase + clamp((slump - 120) * 0.001, -0.05, 0.06); // 坍落度对工作性的影响
+        if(pump) wbr += 0.02; // 泵送略提水胶比以增工作性
+        wbr = clamp(+(wbr.toFixed(3)), 0.32, 0.68);
+        let binder = Math.round(clamp(380 + (ts-30)*4, 360, 460));
+        let cementShare = 0.55, flyShare = 0.25, slagShare = 0.20;
+        // 材料指标正常，无需调整配比
+        // if(materialAlerts.some(s=>s.includes('粉煤灰'))) { flyShare = Math.max(0.15, flyShare-0.05); cementShare = clamp(cementShare+0.05, 0.50, 0.75); }
+        // if(materialAlerts.some(s=>s.includes('高炉矿渣'))) { slagShare = Math.max(0.10, slagShare-0.05); cementShare = clamp(cementShare+0.05, 0.50, 0.75); }
+        let water = Math.round(binder * wbr);
+        // 工艺因子校正与建议
+        processAlerts = [];
+        if(dryTime < 45) { processAlerts.push('烘干时间偏短：建议≥45min以降低含水波动'); water = Math.max(0, water - 8); }
+        if(sieveEff < 80) { processAlerts.push('筛分效率偏低：建议提升设备参数或重复筛分'); }
+        if(pump && slump < 140) { processAlerts.push('泵送且坍落度偏低：建议提高坍落度或增外加剂'); }
+        const sp = Math.round(binder * 0.008); // 默认 0.8% 胶凝材料
+        const cement = Math.round(binder * cementShare);
+        const fly = Math.round(binder * flyShare);
+        const slag = Math.round(binder * slagShare);
+        const aggTotal = Math.max(1200, 1650 - binder - water);
+        const fine = Math.round(aggTotal * clamp(sandRatio, 0.35, 0.55));
+        const coarse = Math.round(aggTotal - fine);
+        return { wbr, binder, water, cement, fly, slag, sp, coarse, fine,
+          note: '根据目标强度自动计算最优配比：所有材料指标合格，配比稳定；外加剂默认0.8%胶凝材料。' };
+      }
+
+      function updatePrediction(){
+        const input = document.getElementById('pTarget');
+        if(!input) return;
+        const ts = +input.value || 40;
+        const r = calcPrediction(ts);
+        document.getElementById('pWBR').textContent = r.wbr.toFixed(2);
+        document.getElementById('pBinder').textContent = r.binder + ' kg/m³';
+        document.getElementById('pWater').textContent = r.water + ' kg/m³';
+        document.getElementById('pCement').textContent = r.cement + ' kg/m³';
+        document.getElementById('pFlyAsh').textContent = r.fly + ' kg/m³';
+        document.getElementById('pSlag').textContent = r.slag + ' kg/m³';
+        document.getElementById('pSP').textContent = r.sp + ' kg/m³';
+        document.getElementById('pCoarse').textContent = r.coarse + ' kg/m³';
+        document.getElementById('pFine').textContent = r.fine + ' kg/m³';
+        document.getElementById('pNote').textContent = r.note + '（演示用途，实际配比需结合历史数据与工况校核）';
+      }
+
+      const pTarget = document.getElementById('pTarget');
+      const pSlump = document.getElementById('pSlump');
+      const pPumpSelect = document.getElementById('pPumpSelect');
+      const pSand = document.getElementById('pSand');
+      const pDryTime = document.getElementById('pDryTime');
+      const pSieveEff = document.getElementById('pSieveEff');
+      function updateSandLabel(){ const el = document.getElementById('pSandVal'); if(el && pSand) el.textContent = Math.round(pSand.value*100)+'%'; }
+      [pTarget,pSlump,pPumpSelect,pSand,pDryTime,pSieveEff].forEach(el=>{ if(el){ el.addEventListener('input', ()=>{ updateSandLabel(); updatePrediction(); }); }});
+      updateSandLabel(); updatePrediction();
+
+      // =====================
+      // 左侧触发与拉伸填充覆盖层
+      // =====================
+      const overlayEl = document.getElementById('overlay');
+      const overlayTitle = document.getElementById('overlayTitle');
+      const overlayContent = document.getElementById('overlayContent');
+      const overlayClose = document.getElementById('overlayClose');
+      const stretchBtn = document.getElementById('btnStretch');
+
+      function openOverlay() {
+        const activeBtn = document.querySelector('.tab-btn.active');
+        const tabId = activeBtn ? activeBtn.dataset.tab : null;
+        const pane = tabId ? document.getElementById(tabId) : null;
+        overlayTitle.textContent = '拉伸视图 · ' + (activeBtn ? activeBtn.textContent : '内容');
+        overlayContent.innerHTML = '';
+        if (pane) {
+          const clone = pane.cloneNode(true);
+          clone.classList.add('overlay-pane');
+          overlayContent.appendChild(clone);
+        }
+        overlayEl.classList.add('show');
+      }
+      function closeOverlay() { overlayEl.classList.remove('show'); }
+
+      if (stretchBtn) stretchBtn.addEventListener('click', openOverlay);
+      if (overlayClose) overlayClose.addEventListener('click', closeOverlay);
+      if (overlayEl) overlayEl.addEventListener('click', (e)=>{ if (e.target === overlayEl) closeOverlay(); });
+      window.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') closeOverlay(); });
+    </script>
+  </body>
+</html>

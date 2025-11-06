@@ -26,7 +26,7 @@ const router = createRouter({
             name: 'components',
             component: Layout,
             meta: {
-                title: 'Samples',
+                title: '因果分析',
                 icon: 'mdi-view-dashboard',
                 visible: true,
             },
@@ -35,7 +35,7 @@ const router = createRouter({
                     path: 'detection',
                     name: 'detection',
                     meta: {
-                        title: '检测页面',
+                        title: '智慧实验室',
                         icon: 'mdi-table',
                         visible: true,
                     },
@@ -60,7 +60,7 @@ const router = createRouter({
             meta: {
                 title: '权限管理',
                 icon: 'mdi-shield-account',
-                visible: true,
+                visible: false,
             },
             children: [
                 {
