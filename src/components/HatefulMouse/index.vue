@@ -1,9 +1,10 @@
 <template>
-    <div ref="hatefulMouseDom" class="hateful-mouse" :style="styles"></div>
+    <!-- <div ref="hatefulMouseDom" class="hateful-mouse" :style="styles"></div> -->
+    <div></div>
 </template>
 <script lang="ts" setup>
-import { computed, shallowRef, onMounted, getCurrentInstance } from 'vue';
 import { useAppStore } from '@/stores/useAppStore';
+import { computed, getCurrentInstance, onMounted, shallowRef } from 'vue';
 
 const mainStore = useAppStore();
 
