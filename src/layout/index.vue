@@ -19,7 +19,7 @@
             />
             <div class="router"><RouterView /></div>
         </main>
-        <Settings />
+        <!-- <Settings /> -->
     </v-layout>
 </template>
 <script setup lang="ts">
