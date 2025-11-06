@@ -220,7 +220,7 @@ const handleUploadResults = (data: any) => {
                 chloride_ion_percent: Math.random() * (0.06 * 0.2) + 0.06 * 0.8,
             },
             water: {
-                ph_value: Math.random() * (4.5 * 0.2) + 4.5 * 0.8,
+                ph_value: Math.random() * (4.5 * 0.2) + 4.5,
                 insoluble_matter_mg_per_L: Math.random() * (2000 * 0.2) + 2000 * 0.8,
             },
             superplasticizer: {
