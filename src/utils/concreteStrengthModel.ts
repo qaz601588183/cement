@@ -32,7 +32,7 @@ export interface ConcreteParameters {
     sand_ratio: number; // 砂率 (%) [30-45]
 
     // 辅助参数（保持兼容性）
-    cement_strength_grade?: number; // 水泥强度等级 (32.5, 42.5, 52.5)
+    cement_strength_grade?: number; // 混凝土强度等级 (32.5, 42.5, 52.5)
     cement_fineness?: number; // 水泥细度 (比表面积 m²/kg)
     curing_humidity?: number; // 养护湿度 (%)
     curing_method?: string; // 养护方式

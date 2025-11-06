@@ -15,7 +15,7 @@
             </v-list-item>
             <v-list-item rounded class="mx-1" to="/">
                 <!-- <v-list-item rounded :prepend-avatar="logo" class="mx-1" to="/"> -->
-                <v-list-item-title class="title">水泥强度质量推演系统</v-list-item-title>
+                <v-list-item-title class="title">混凝土强度质量推演系统</v-list-item-title>
                 <!-- <v-list-item-subtitle>www.cement.com</v-list-item-subtitle> -->
             </v-list-item>
         </v-list>
