@@ -3,12 +3,7 @@
         <v-card-title class="d-flex justify-space-between align-center">
             <span class="text-h6">混凝土强度预测分析报告</span>
             <div>
-                <v-btn
-                    variant="text"
-                    prepend-icon="mdi-arrow-left"
-                    @click="goBack"
-                    class="mr-2"
-                >
+                <v-btn variant="text" prepend-icon="mdi-arrow-left" @click="goBack" class="mr-2">
                     返回调整
                 </v-btn>
                 <v-btn
@@ -177,10 +172,10 @@
 </template>
 
 <script setup lang="ts">
+import { useConcreteStore } from '@/stores/useConcreteStore';
 import type { EChartsOption } from 'echarts';
 import * as echarts from 'echarts';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
-import { useConcreteStore } from '@/stores/useConcreteStore';
 import { useRouter } from 'vue-router';
 
 // 获取store和router
