@@ -39,7 +39,7 @@ const router = createRouter({
                         icon: 'mdi-map-marker-path',
                         visible: true,
                         step: 0,
-                        description: '选择配比设计流程'
+                        description: '选择配比设计流程',
                     },
                     component: () => import('@/views/componets/deduce.vue'),
                 },
@@ -47,11 +47,11 @@ const router = createRouter({
                     path: 'reverse-step1',
                     name: 'reverse-step1',
                     meta: {
-                        title: 'a. 需求输入（施工方）',
+                        title: '反向推演数据',
                         icon: 'mdi-clipboard-text',
                         visible: true,
                         step: 1,
-                        description: '施工方提供具体的强度需求'
+                        description: '施工方提供具体的强度需求',
                     },
                     component: () => import('@/views/reverse/step1.vue'),
                 },
@@ -59,11 +59,11 @@ const router = createRouter({
                     path: 'reverse-step2',
                     name: 'reverse-step2',
                     meta: {
-                        title: 'b. 模型计算（预判模型）',
-                        icon: 'mdi-calculator',
+                        title: '反向推演报告',
+                        icon: 'mdi-file-document',
                         visible: true,
                         step: 2,
-                        description: '预判模型快速给出初步配合比'
+                        description: '预判模型快速给出初步配合比',
                     },
                     component: () => import('@/views/reverse/step2.vue'),
                 },
@@ -71,11 +71,11 @@ const router = createRouter({
                     path: 'detection',
                     name: 'detection',
                     meta: {
-                        title: 'c. 属性检测（检测实验室）',
+                        title: '智慧实验室',
                         icon: 'mdi-flask',
                         visible: true,
                         step: 3,
-                        description: '检测实验室进行材料属性检测'
+                        description: '检测实验室进行材料属性检测',
                     },
                     component: () => import('@/views/componets/detection.vue'),
                 },
@@ -83,11 +83,11 @@ const router = createRouter({
                     path: 'forward-step1',
                     name: 'forward-step1',
                     meta: {
-                        title: 'd. 配比优化（历史数据）',
-                        icon: 'mdi-tune',
+                        title: '正向推演数据',
+                        icon: 'mdi-database-edit',
                         visible: true,
                         step: 4,
-                        description: '根据检测结果和历史数据调整配合比'
+                        description: '根据检测结果和历史数据调整配合比',
                     },
                     component: () => import('@/views/forward/step1.vue'),
                 },
@@ -95,11 +95,11 @@ const router = createRouter({
                     path: 'forward-step2',
                     name: 'forward-step2',
                     meta: {
-                        title: 'e. 最终产出（混凝土建设）',
-                        icon: 'mdi-check-circle',
+                        title: '正向推演报告',
+                        icon: 'mdi-file-chart',
                         visible: true,
                         step: 5,
-                        description: '生成最终混合料配比'
+                        description: '生成最终混合料配比',
                     },
                     component: () => import('@/views/forward/step2.vue'),
                 },
