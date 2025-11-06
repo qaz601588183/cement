@@ -14,13 +14,8 @@
             <!-- 嵌入 priment.html 页面 -->
         </v-container>
         <div style="width: 100%; height: 100%">
-            <iframe
-                src="/priment.html"
-                width="100%"
-                height="1000px"
-                frameborder="0"
-                style="border: none; margin-top: 20px"
-            ></iframe>
+            <iframe src="/priment.html" width="100%" height="1000px" frameborder="0"
+                style="border: none; margin-top: 20px"></iframe>
         </div>
 
         <!-- 上传成功提示 -->
@@ -33,6 +28,7 @@
 
 <script setup lang="ts">
 import router from '@/router';
+import { useConcreteStore } from '@/stores/useConcreteStore';
 import { onMounted, onUnmounted, ref } from 'vue';
 // import Detection1 from './components/detection_1.vue';
 // import Detection2 from './components/detection_2.vue';
@@ -84,7 +80,7 @@ const showUploadSnackbar = ref(false);
 // const handleGoBack = () => {
 //     showExperiments.value = false;
 // };
-
+const concreteStore = useConcreteStore();
 // 处理结果上传
 const handleUploadResults = (data: any) => {
     console.log('上传检测结果：', data);
@@ -98,6 +94,46 @@ const handleUploadResults = (data: any) => {
     // 可选：上传成功后跳转到配比优化（历史数据）
     setTimeout(() => {
         showExperiments.value = false;
+        // 生成模拟检测结果数据
+        const mockDetectionResults = {
+            cement: {
+                insoluble_matter_percent: Math.random() * 1.5,
+                magnesium_oxide_percent: Math.random() * 5.0,
+                sulfur_trioxide_percent: Math.random() * 4.0
+            },
+            fly_ash: {
+                loss_on_ignition_percent: Math.random() * (5.0 * 0.2) + 5.0 * 0.8,
+                moisture_content_percent: Math.random() * (1.0 * 0.2) + 1.0 * 0.8,
+                sulfur_trioxide_percent: Math.random() * (3.0 * 0.2) + 3.0 * 0.8
+            },
+            blast_furnace_slag: {
+                sulfur_trioxide_percent: Math.random() * (4.0 * 0.2) + 4.0 * 0.8,
+                chloride_ion_percent: Math.random() * (0.06 * 0.2) + 0.06 * 0.8
+            },
+            water: {
+                ph_value: Math.random() * (4.5 * 0.2) + 4.5 * 0.8,
+                insoluble_matter_mg_per_L: Math.random() * (2000 * 0.2) + 2000 * 0.8
+            },
+            superplasticizer: {
+                moisture_content_percent_powder: Math.random() * (5.0 * 0.2) + 5.0 * 0.8,
+                density_tolerance_g_per_cm3: Math.random() * (0.03 * 0.2) + 0.03 * 0.8,
+                chloride_ion_percent: Math.random() * (0.20 * 0.2) + 0.20 * 0.8
+            },
+            coarse_aggregate: {
+                flaky_elongated_particles_percent: Math.random() * (15.0 * 0.2) + 15.0 * 0.8,
+                clay_content_percent: Math.random() * (2.0 * 0.2) + 2.0 * 0.8,
+                crushing_value_percent: Math.random() * (10.0 * 0.2) + 10.0 * 0.8
+            },
+            fine_aggregate: {
+                clay_content_percent: Math.random() * (3.0 * 0.2) + 3.0 * 0.8,
+                mica_content_percent: Math.random() * (2.0 * 0.2) + 2.0 * 0.8,
+                chloride_ion_percent: Math.random() * (0.02 * 0.2) + 0.02 * 0.8
+            },
+        };
+
+        // 将模拟数据传递给下一步
+        console.log('生成的检测结果数据:', mockDetectionResults);
+        concreteStore.updateConcreteData(mockDetectionResults);
         location.replace('/#/concrete-design/forward-step1');
     }, 2000);
 };
