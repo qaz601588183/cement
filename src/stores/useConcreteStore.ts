@@ -31,8 +31,27 @@ export interface ConcreteData {
  * 用于存储和管理从外部传入的混凝土检测数据
  */
 export const useConcreteStore = defineStore('concrete', () => {
-    // 当前混凝土数据
+    // 当前混凝土数据（用于检测页面传递数据）
     const concreteData = ref<ConcreteData | null>(null);
+
+    // 正向推演数据
+    const forwardData = ref<any>({
+        mixProportionParams: {
+            cement: 380,
+            blast_furnace_slag: 50,
+            fly_ash: 60,
+            water: 170,
+            superplasticizer: 5,
+            coarse_aggregate: 1100,
+            fine_aggregate: 650,
+            age: 28,
+        },
+        // 存储步骤2的分析结果
+        analysisResult: null,
+    });
+
+    // 反向推演数据
+    const reverseData = ref<any>(null);
 
     /**
      * 设置混凝土数据
@@ -69,11 +88,96 @@ export const useConcreteStore = defineStore('concrete', () => {
         return concreteData.value !== null;
     };
 
+    // ========== 正向推演相关方法 ==========
+
+    /**
+     * 设置正向推演数据
+     * @param data 正向推演数据
+     */
+    const setForwardData = (data: any) => {
+        forwardData.value = data;
+    };
+
+    /**
+     * 更新正向推演数据（部分更新）
+     * @param partialData 部分数据
+     */
+    const updateForwardData = (partialData: Partial<any>) => {
+        if (forwardData.value) {
+            forwardData.value = {
+                ...forwardData.value,
+                ...partialData,
+            };
+        }
+    };
+
+    /**
+     * 清空正向推演数据
+     */
+    const clearForwardData = () => {
+        forwardData.value = {
+            mixProportionParams: {
+                cement: 380,
+                blast_furnace_slag: 50,
+                fly_ash: 60,
+                water: 170,
+                superplasticizer: 5,
+                coarse_aggregate: 1100,
+                fine_aggregate: 650,
+                age: 28,
+            },
+            analysisResult: null,
+        };
+    };
+
+    // ========== 反向推演相关方法 ==========
+
+    /**
+     * 设置反向推演数据
+     * @param data 反向推演数据
+     */
+    const setReverseData = (data: any) => {
+        reverseData.value = data;
+    };
+
+    /**
+     * 更新反向推演数据（部分更新）
+     * @param partialData 部分数据
+     */
+    const updateReverseData = (partialData: Partial<any>) => {
+        if (reverseData.value) {
+            reverseData.value = {
+                ...reverseData.value,
+                ...partialData,
+            };
+        } else {
+            reverseData.value = partialData;
+        }
+    };
+
+    /**
+     * 清空反向推演数据
+     */
+    const clearReverseData = () => {
+        reverseData.value = null;
+    };
+
     return {
+        // 原有数据和方法
         concreteData,
         setConcreteData,
         updateConcreteData,
         clearConcreteData,
         hasData,
+        // 正向推演
+        forwardData,
+        setForwardData,
+        updateForwardData,
+        clearForwardData,
+        // 反向推演
+        reverseData,
+        setReverseData,
+        updateReverseData,
+        clearReverseData,
     };
 });

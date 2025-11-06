@@ -6,7 +6,7 @@
                 <v-btn
                     variant="text"
                     prepend-icon="mdi-arrow-left"
-                    @click="emit('back')"
+                    @click="goBack"
                     class="mr-2"
                 >
                     返回修改
@@ -131,7 +131,7 @@
                     color="grey"
                     variant="outlined"
                     prepend-icon="mdi-arrow-left"
-                    @click="emit('back')"
+                    @click="goBack"
                 >
                     返回修改参数
                 </v-btn>
@@ -189,17 +189,12 @@ import type { OptimizeResponse } from '@/api/predict';
 import type { EChartsOption } from 'echarts';
 import * as echarts from 'echarts';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+import { useConcreteStore } from '@/stores/useConcreteStore';
+import { useRouter } from 'vue-router';
 
-interface Props {
-    data: OptimizeResponse;
-}
-
-const props = defineProps<Props>();
-
-const emit = defineEmits<{
-    back: [];
-    apply: [config: any];
-}>();
+// 获取store和router
+const concreteStore = useConcreteStore();
+const router = useRouter();
 
 // ECharts实例引用
 const strengthComparisonChartRef = ref<HTMLDivElement>();
@@ -212,8 +207,8 @@ let paramComparisonChart: echarts.ECharts | null = null;
 let adjustmentDetailsChart: echarts.ECharts | null = null;
 let radarChart: echarts.ECharts | null = null;
 
-// 优化结果
-const optimizeResult = computed(() => props.data);
+// 优化结果（从store读取）
+const optimizeResult = computed(() => concreteStore.reverseData || {});
 
 // 确认对话框状态
 const confirmDialog = ref(false);
@@ -292,6 +287,11 @@ const getChangeClass = (key: string): string => {
     return '';
 };
 
+// 返回上一步
+const goBack = () => {
+    router.push('/concrete-design/reverse-step1');
+};
+
 // 显示确认对话框
 const showConfirmDialog = () => {
     confirmDialog.value = true;
@@ -304,8 +304,24 @@ const applyOptimization = () => {
     // 关闭对话框
     confirmDialog.value = false;
 
-    // 发送apply事件给父组件，父组件会处理跳转到正向推演
-    emit('apply', optimizeResult.value.optimized_config);
+    // 将优化后的配置应用到正向推演的forwardData
+    const optimizedConfig = optimizeResult.value.optimized_config;
+    concreteStore.setForwardData({
+        mixProportionParams: {
+            cement: optimizedConfig.cement || 0,
+            blast_furnace_slag: optimizedConfig.blast_furnace_slag || 0,
+            fly_ash: optimizedConfig.fly_ash || 0,
+            water: optimizedConfig.water || 0,
+            superplasticizer: optimizedConfig.superplasticizer || 0,
+            coarse_aggregate: optimizedConfig.coarse_aggregate || 0,
+            fine_aggregate: optimizedConfig.fine_aggregate || 0,
+            age: optimizedConfig.age || 28,
+        },
+        analysisResult: null,
+    });
+
+    // 跳转到正向推演页面（检测实验室）
+    router.push('/concrete-design/detection');
 };
 
 // 初始化强度对比图表

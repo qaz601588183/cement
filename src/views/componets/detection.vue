@@ -95,10 +95,10 @@ const handleUploadResults = (data: any) => {
     // 显示成功提示
     showUploadSnackbar.value = true;
 
-    // 可选：上传成功后返回样品列表
+    // 可选：上传成功后跳转到配比优化（历史数据）
     setTimeout(() => {
         showExperiments.value = false;
-        location.replace('/#/components/deduce');
+        location.replace('/#/concrete-design/forward-step1');
     }, 2000);
 };
 
