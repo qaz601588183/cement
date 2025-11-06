@@ -3,12 +3,7 @@
         <v-card-title class="d-flex justify-space-between align-center">
             <span class="text-h6">反向推演结果 - 优化配合比方案</span>
             <div>
-                <v-btn
-                    variant="text"
-                    prepend-icon="mdi-arrow-left"
-                    @click="goBack"
-                    class="mr-2"
-                >
+                <v-btn variant="text" prepend-icon="mdi-arrow-left" @click="goBack" class="mr-2">
                     返回修改
                 </v-btn>
             </div>
@@ -186,10 +181,10 @@
 
 <script setup lang="ts">
 import type { OptimizeResponse } from '@/api/predict';
+import { useConcreteStore } from '@/stores/useConcreteStore';
 import type { EChartsOption } from 'echarts';
 import * as echarts from 'echarts';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
-import { useConcreteStore } from '@/stores/useConcreteStore';
 import { useRouter } from 'vue-router';
 
 // 获取store和router

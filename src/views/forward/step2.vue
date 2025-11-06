@@ -501,7 +501,7 @@ const initRadarChart = () => {
 
     radarChart = echarts.init(radarChartRef.value);
 
-    const params = props.data?.mixProportionParams || {};
+    const params = concreteStore.forwardData?.mixProportionParams || {};
 
     // 定义各参数的合理范围（用于归一化）
     const ranges = {
@@ -587,7 +587,7 @@ const initParamDistributionChart = () => {
 
     paramDistributionChart = echarts.init(paramDistributionChartRef.value);
 
-    const params = props.data?.mixProportionParams || {};
+    const params = concreteStore.forwardData?.mixProportionParams || {};
     const similarSamples = apiResult.value.similar_samples || [];
 
     // 准备数据：当前配比 vs 相似样本平均值
