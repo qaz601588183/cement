@@ -996,9 +996,7 @@ const editableParams = ref<MixProportionParams>({
 });
 
 // 检测数据 - 从store获取
-const detectionData = computed<DetectionResults | null>(() => {
-    console.log('concreteStore.concreteData?', concreteStore.concreteData);
-
+const detectionData = computed<any>(() => {
     return concreteStore.concreteData || null;
 });
 
