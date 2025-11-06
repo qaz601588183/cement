@@ -15,7 +15,7 @@
         </v-container>
         <div style="width: 100%; height: 100%">
             <iframe
-                src="/priment.html"
+                src="/priment-new.html"
                 width="100%"
                 height="1000px"
                 frameborder="0"

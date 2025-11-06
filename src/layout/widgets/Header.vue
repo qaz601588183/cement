@@ -69,7 +69,7 @@
             <v-btn variant="text" icon="mdi" class="mr-2">
                 <v-avatar size="small" class="avatar">
                     <v-img
-                        src="https://q2.itc.cn/q_70/images03/20250225/e8117dd40aae4db5a64461f1ea0d16fc.jpeg"
+                        src="https://image.healthjd.com/nethpim/jfs/t1/87576/30/32072/31389/64af5d3aF2cad128c/bdfb448faa50bf6e.jpg"
                         alt="啊"
                     ></v-img>
                 </v-avatar>
