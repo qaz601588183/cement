@@ -1,13 +1,13 @@
-import Axios from 'axios';
 import router from '@/router';
+import { useSnackbarStore } from '@/stores/useSnackbarStore';
 import type {
-    AxiosResponse,
-    AxiosRequestConfig,
     AxiosError,
     AxiosPromise,
+    AxiosRequestConfig,
+    AxiosResponse,
     InternalAxiosRequestConfig,
 } from 'axios';
-import { useSnackbarStore } from '@/stores/useSnackbarStore';
+import Axios from 'axios';
 
 declare module 'axios' {
     export interface AxiosRequestConfig {
@@ -24,7 +24,7 @@ const request = Axios.create({
     baseURL: import.meta.env.VITE_API,
     // baseURL: 'https://apifoxmock.com/m1/5061937-4723200-default',
     // baseURL: 'http://localhost:8085',
-    timeout: 20000,
+    timeout: 300000, // 5分钟超时
 });
 
 /**

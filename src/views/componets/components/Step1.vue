@@ -2,24 +2,25 @@
     <v-card class="my-4">
         <v-card-title class="d-flex justify-space-between align-center">
             <span class="text-h6">混凝土强度推演与参数优化</span>
-            <v-btn variant="text" prepend-icon="mdi-arrow-left" @click="emit('back')"> 返回 </v-btn>
         </v-card-title>
         <v-divider></v-divider>
 
         <!-- 推演 Loading 状态 -->
         <div v-if="isAnalyzing" class="text-center pa-10">
-            <v-progress-circular
-                :model-value="analysisProgress"
-                :rotate="360"
-                :size="100"
-                :width="10"
-                color="primary"
-                class="mb-4"
-            >
-                <template v-slot:default>
-                    <div class="text-h5">{{ Math.ceil(analysisProgress) }}%</div>
-                </template>
-            </v-progress-circular>
+            <!-- Vuetify 加载动画 -->
+            <div class="loading-container mb-6">
+                <v-progress-circular
+                    :model-value="analysisProgress"
+                    :size="200"
+                    :width="15"
+                    color="primary"
+                    class="mb-4"
+                >
+                    <div class="text-h4 font-weight-bold text-primary">
+                        {{ Math.ceil(analysisProgress) }}%
+                    </div>
+                </v-progress-circular>
+            </div>
             <div class="mt-6">
                 <div class="text-h5 mb-4 font-weight-bold">{{ analysisStage }}</div>
                 <v-progress-linear
@@ -101,37 +102,39 @@
                 </template>
             </v-alert>
 
-            <!-- 强度预测卡片 -->
-            <v-row class="mb-4">
-                <v-col cols="12">
-                    <v-card
-                        class="strength-compare-card"
-                        elevation="3"
-                        color="primary"
-                        variant="tonal"
-                    >
-                        <v-card-text>
-                            <div class="text-subtitle-2 mb-2">
-                                <v-icon size="small" class="mr-1">mdi-brain</v-icon>
-                                AI推演预测强度
+            <!-- 预设配置选择 -->
+            <v-card class="mb-4">
+                <v-card-title>
+                    <v-icon class="mr-2">mdi-book-open-variant</v-icon>
+                    快速预设配置
+                </v-card-title>
+                <v-card-text>
+                    <v-row>
+                        <v-col cols="12" md="3" v-for="preset in presetConfigs" :key="preset.name">
+                            <v-btn
+                                block
+                                :variant="selectedPreset === preset.name ? 'flat' : 'tonal'"
+                                :color="preset.color"
+                                @click="applyPreset(preset.name)"
+                                :prepend-icon="
+                                    selectedPreset === preset.name
+                                        ? 'mdi-check-circle'
+                                        : 'mdi-clipboard-text'
+                                "
+                            >
+                                {{ preset.label }}
+                            </v-btn>
+                            <div class="text-caption text-center mt-1 text-grey">
+                                {{ preset.description }}
                             </div>
-                            <div class="d-flex align-center">
-                                <v-icon size="large" class="mr-3">mdi-chart-line</v-icon>
-                                <div>
-                                    <div class="text-h4 font-weight-bold">
-                                        {{ predictedStrength }}
-                                    </div>
-                                    <div class="text-caption">MPa</div>
-                                </div>
-                            </div>
-                        </v-card-text>
-                    </v-card>
-                </v-col>
-            </v-row>
+                        </v-col>
+                    </v-row>
+                </v-card-text>
+            </v-card>
 
             <!-- 可调参数面板 - 8个关键参数 -->
-            <v-card class="mb-4" elevation="2">
-                <v-card-title class="bg-gradient-primary">
+            <v-card class="mb-4">
+                <v-card-title>
                     <v-icon class="mr-2">mdi-tune-variant</v-icon>
                     配合比参数调整 - 实时推演
                 </v-card-title>
@@ -435,7 +438,7 @@
                                 </div>
                                 <v-slider
                                     v-model="editableParams.age"
-                                    :min="1"
+                                    :min="7"
                                     :max="90"
                                     :step="1"
                                     color="primary"
@@ -444,7 +447,7 @@
                                     @update:model-value="handleParameterChange"
                                 >
                                     <template v-slot:prepend>
-                                        <v-chip size="x-small">1天</v-chip>
+                                        <v-chip size="x-small">7天</v-chip>
                                     </template>
                                     <template v-slot:append>
                                         <v-chip size="x-small">90天</v-chip>
@@ -452,7 +455,7 @@
                                 </v-slider>
                                 <div class="text-caption text-grey text-center">
                                     <v-icon size="x-small">mdi-lightbulb-outline</v-icon>
-                                    标准测试龄期为28天
+                                    标准测试龄期为28天，最小为7天
                                 </div>
                             </v-card>
                         </v-col>
@@ -462,7 +465,7 @@
                     <v-divider class="my-6"></v-divider>
                     <v-row>
                         <v-col cols="12" md="4">
-                            <v-card variant="tonal" color="info" class="pa-3">
+                            <v-card variant="tonal" class="pa-3">
                                 <div class="text-caption text-grey-darken-2">水灰比 (W/C)</div>
                                 <div class="text-h5 font-weight-bold">
                                     {{ waterCementRatio }}
@@ -481,6 +484,34 @@
                             <v-card variant="tonal" color="warning" class="pa-3">
                                 <div class="text-caption text-grey-darken-2">砂率</div>
                                 <div class="text-h5 font-weight-bold">{{ sandRatio }}%</div>
+                            </v-card>
+                        </v-col>
+                    </v-row>
+
+                    <!-- 强度预测卡片 -->
+                    <v-row>
+                        <v-col cols="12">
+                            <v-card
+                                class="strength-compare-card"
+                                elevation="3"
+                                color="primary"
+                                variant="tonal"
+                            >
+                                <v-card-text>
+                                    <div class="text-subtitle-2 mb-2">
+                                        <v-icon size="small" class="mr-1">mdi-brain</v-icon>
+                                        AI推演预测强度
+                                    </div>
+                                    <div class="d-flex align-center">
+                                        <v-icon size="large" class="mr-3">mdi-chart-line</v-icon>
+                                        <div>
+                                            <div class="text-h4 font-weight-bold">
+                                                {{ predictedStrength }}
+                                            </div>
+                                            <div class="text-caption">MPa</div>
+                                        </div>
+                                    </div>
+                                </v-card-text>
                             </v-card>
                         </v-col>
                     </v-row>
@@ -505,9 +536,10 @@
 </template>
 
 <script setup lang="ts">
+import PredictAPI, { type PredictRequest } from '@/api/predict';
 import { useConcreteStore, type MixProportionParams } from '@/stores/useConcreteStore';
 import { calculateConcreteStrength, type ConcreteParameters } from '@/utils/concreteStrengthModel';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 
 const emit = defineEmits<{
     back: [];
@@ -518,15 +550,13 @@ const emit = defineEmits<{
 // 获取store
 const concreteStore = useConcreteStore();
 
-// 配置
-const ANALYSIS_DURATION = 2000; // 2秒分析时间
-
 // 状态
 const isAnalyzing = ref(false);
 const analysisProgress = ref(0);
 const analysisStage = ref('');
 const estimatedTime = ref(2);
 const isGeneratingReport = ref(false);
+const selectedPreset = ref<string | null>(null);
 
 // 可编辑的参数
 const editableParams = ref<MixProportionParams>({
@@ -539,6 +569,74 @@ const editableParams = ref<MixProportionParams>({
     fine_aggregate: 650,
     age: 28,
 });
+
+// 预设配置
+const presetConfigs = [
+    {
+        name: 'c30',
+        label: 'C30普通混凝土',
+        description: '适用于一般建筑结构',
+        color: 'primary',
+        params: {
+            cement: 300,
+            blast_furnace_slag: 0,
+            fly_ash: 0,
+            water: 185,
+            superplasticizer: 3,
+            coarse_aggregate: 1050,
+            fine_aggregate: 850,
+            age: 28,
+        },
+    },
+    {
+        name: 'c40',
+        label: 'C40高性能混凝土',
+        description: '适用于高层建筑、桥梁',
+        color: 'success',
+        params: {
+            cement: 380,
+            blast_furnace_slag: 50,
+            fly_ash: 30,
+            water: 170,
+            superplasticizer: 8,
+            coarse_aggregate: 1000,
+            fine_aggregate: 800,
+            age: 28,
+        },
+    },
+    {
+        name: 'c50',
+        label: 'C50高强混凝土',
+        description: '适用于超高层、重要结构',
+        color: 'warning',
+        params: {
+            cement: 450,
+            blast_furnace_slag: 100,
+            fly_ash: 50,
+            water: 160,
+            superplasticizer: 12,
+            coarse_aggregate: 980,
+            fine_aggregate: 780,
+            age: 28,
+        },
+    },
+    {
+        name: 'lowwater',
+        label: '低水灰比混凝土',
+        description: '适用于耐久性要求高的工程',
+        color: 'info',
+        params: {
+            cement: 400,
+            blast_furnace_slag: 150,
+            fly_ash: 80,
+            water: 150,
+            superplasticizer: 15,
+            coarse_aggregate: 950,
+            fine_aggregate: 750,
+            age: 28,
+        },
+    },
+];
 
 // 分析阶段
 const analysisStages = ref([
@@ -597,7 +695,7 @@ const predictedStrength = computed(() => {
     // 将配合比参数转换为ConcreteParameters
     const params: ConcreteParameters = {
         cement_content: editableParams.value.cement,
-        water_cement_ratio: parseFloat(waterCementRatio.value),
+        water_cement_ratio: parseFloat(String(waterCementRatio.value)),
         water_reducer_dosage:
             (editableParams.value.superplasticizer / editableParams.value.cement) * 100, // 转换为百分比
         curing_temperature: 20, // 假设标准养护温度
@@ -606,13 +704,23 @@ const predictedStrength = computed(() => {
         slag_dosage: (editableParams.value.blast_furnace_slag / totalCementitious.value) * 100,
         coarse_aggregate_content: editableParams.value.coarse_aggregate,
         fine_aggregate_content: editableParams.value.fine_aggregate,
-        sand_ratio: parseFloat(sandRatio.value),
+        sand_ratio: parseFloat(String(sandRatio.value)),
     };
 
     return calculateConcreteStrength(params);
 });
 
 // 方法
+
+// 应用预设配置
+const applyPreset = (presetName: string) => {
+    const preset = presetConfigs.find((p) => p.name === presetName);
+    if (preset) {
+        editableParams.value = { ...preset.params };
+        selectedPreset.value = presetName;
+        console.log('应用预设配置:', presetName, editableParams.value);
+    }
+};
 
 // 初始化参数（从store读取）
 const initializeParams = () => {
@@ -630,51 +738,12 @@ const handleParameterChange = () => {
     console.log('预测强度:', predictedStrength.value, 'MPa');
 };
 
-// 模拟分析过程
-const simulateAnalysis = () => {
-    isAnalyzing.value = true;
-    analysisProgress.value = 0;
-    estimatedTime.value = Math.ceil(ANALYSIS_DURATION / 1000);
-
-    let currentStageIndex = 0;
-    analysisStages.value[0].active = true;
-    analysisStage.value = analysisStages.value[0].title;
-
-    const interval = setInterval(() => {
-        analysisProgress.value += 100 / (ANALYSIS_DURATION / 100);
-        estimatedTime.value = Math.ceil(
-            ((100 - analysisProgress.value) / 100) * (ANALYSIS_DURATION / 1000)
-        );
-
-        // 更新阶段
-        const targetStage = Math.floor(
-            (analysisProgress.value / 100) * analysisStages.value.length
-        );
-        if (targetStage > currentStageIndex && targetStage < analysisStages.value.length) {
-            analysisStages.value[currentStageIndex].active = false;
-            analysisStages.value[currentStageIndex].completed = true;
-            currentStageIndex = targetStage;
-            analysisStages.value[currentStageIndex].active = true;
-            analysisStage.value = analysisStages.value[currentStageIndex].title;
-        }
-
-        if (analysisProgress.value >= 100) {
-            clearInterval(interval);
-            analysisStages.value[currentStageIndex].active = false;
-            analysisStages.value[currentStageIndex].completed = true;
-            isAnalyzing.value = false;
-            analysisProgress.value = 100;
-            estimatedTime.value = 0;
-        }
-    }, 100);
-};
-
 // 生成报告
 const generateReport = async () => {
     // 先显示loading
     isAnalyzing.value = true;
     analysisProgress.value = 0;
-    estimatedTime.value = Math.ceil(ANALYSIS_DURATION / 1000);
+    estimatedTime.value = 10; // 初始估计10秒
 
     // 重置分析阶段
     analysisStages.value.forEach((stage) => {
@@ -683,7 +752,7 @@ const generateReport = async () => {
     });
 
     // 准备请求参数
-    const requestData = {
+    const requestData: PredictRequest = {
         age: editableParams.value.age,
         blast_furnace_slag: editableParams.value.blast_furnace_slag,
         cement: editableParams.value.cement,
@@ -696,28 +765,22 @@ const generateReport = async () => {
 
     console.log('正在调用预测接口，参数:', requestData);
 
-    // 启动进度模拟
-    simulateAnalysisForPrediction();
+    // 记录开始时间
+    const startTime = Date.now();
+
+    // 启动真实进度模拟
+    const progressInterval = simulateRealProgress(startTime);
 
     try {
-        // 调用预测接口
-        const response = await fetch('http://localhost:8000/api/predict', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestData),
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result = await response.json();
+        // 调用预测接口（使用封装的API）
+        const result = await PredictAPI.predictStrength(requestData);
         console.log('接口返回结果:', result);
 
-        // 等待进度条完成
-        await waitForAnalysisComplete();
+        // 停止进度模拟
+        clearInterval(progressInterval);
+
+        // 确保进度达到100%
+        await completeProgress();
 
         // 直接传递API返回的result，附加当前调整的配合比参数
         const reportData = {
@@ -733,6 +796,9 @@ const generateReport = async () => {
     } catch (error) {
         console.error('调用预测接口失败:', error);
 
+        // 停止进度模拟
+        clearInterval(progressInterval);
+
         // 停止loading
         isAnalyzing.value = false;
 
@@ -741,24 +807,45 @@ const generateReport = async () => {
     }
 };
 
-// 模拟分析进度（用于显示loading）
-const simulateAnalysisForPrediction = () => {
+// 真实进度模拟（基于实际请求时间）
+const simulateRealProgress = (startTime: number) => {
     let currentStageIndex = 0;
     analysisStages.value[0].active = true;
     analysisStage.value = analysisStages.value[0].title;
 
     const interval = setInterval(() => {
         if (!isAnalyzing.value) {
-            clearInterval(interval);
             return;
         }
 
-        analysisProgress.value += 100 / (ANALYSIS_DURATION / 100);
-        estimatedTime.value = Math.ceil(
-            ((100 - analysisProgress.value) / 100) * (ANALYSIS_DURATION / 1000)
-        );
+        const elapsed = Date.now() - startTime;
 
-        // 更新阶段
+        // 使用对数函数模拟真实进度：前期快速增长，后期缓慢
+        // 前3秒快速到50%，之后逐渐减缓，最大到95%
+        let progress: number;
+        if (elapsed < 3000) {
+            // 前3秒：0-50%
+            progress = (elapsed / 3000) * 50;
+        } else if (elapsed < 10000) {
+            // 3-10秒：50-80%
+            progress = 50 + ((elapsed - 3000) / 7000) * 30;
+        } else if (elapsed < 30000) {
+            // 10-30秒：80-90%
+            progress = 80 + ((elapsed - 10000) / 20000) * 10;
+        } else {
+            // 30秒后：90-95%，几乎不动
+            progress = 90 + Math.min(((elapsed - 30000) / 60000) * 5, 5);
+        }
+
+        analysisProgress.value = Math.min(progress, 95);
+
+        // 动态估算剩余时间
+        if (elapsed > 1000 && progress > 5) {
+            const estimatedTotal = (elapsed / progress) * 100;
+            estimatedTime.value = Math.ceil((estimatedTotal - elapsed) / 1000);
+        }
+
+        // 更新阶段（基于进度）
         const targetStage = Math.floor(
             (analysisProgress.value / 100) * analysisStages.value.length
         );
@@ -769,29 +856,38 @@ const simulateAnalysisForPrediction = () => {
             analysisStages.value[currentStageIndex].active = true;
             analysisStage.value = analysisStages.value[currentStageIndex].title;
         }
+    }, 200);
 
-        if (analysisProgress.value >= 100) {
-            clearInterval(interval);
-            analysisStages.value[currentStageIndex].active = false;
-            analysisStages.value[currentStageIndex].completed = true;
-            analysisProgress.value = 100;
-            estimatedTime.value = 0;
-        }
-    }, 100);
+    return interval;
 };
 
-// 等待分析完成
-const waitForAnalysisComplete = (): Promise<void> => {
+// 完成进度（确保到达100%）
+const completeProgress = (): Promise<void> => {
     return new Promise((resolve) => {
-        const checkComplete = setInterval(() => {
-            if (analysisProgress.value >= 100) {
-                clearInterval(checkComplete);
+        // 快速完成剩余进度
+        const completeInterval = setInterval(() => {
+            if (analysisProgress.value < 100) {
+                analysisProgress.value += (100 - analysisProgress.value) * 0.3;
+                if (analysisProgress.value > 99.5) {
+                    analysisProgress.value = 100;
+                }
+            } else {
+                clearInterval(completeInterval);
+
+                // 完成所有阶段
+                analysisStages.value.forEach((stage) => {
+                    stage.active = false;
+                    stage.completed = true;
+                });
+
+                estimatedTime.value = 0;
+
                 setTimeout(() => {
                     isAnalyzing.value = false;
                     resolve();
                 }, 500);
             }
-        }, 100);
+        }, 50);
     });
 };
 
@@ -804,6 +900,30 @@ const getProgressColor = (progress: number) => {
 };
 
 // 生命周期
+// 监听参数变化，清除预设选中状态（用户手动调整时）
+watch(
+    editableParams,
+    (newParams) => {
+        // 检查是否是手动调整（而非预设应用）
+        if (selectedPreset.value) {
+            const currentPreset = presetConfigs.find((p) => p.name === selectedPreset.value);
+            if (currentPreset) {
+                // 检查是否与当前预设完全匹配
+                const isMatch = Object.keys(currentPreset.params).every(
+                    (key) =>
+                        currentPreset.params[key as keyof MixProportionParams] ===
+                        newParams[key as keyof MixProportionParams]
+                );
+                if (!isMatch) {
+                    // 参数已被手动修改，清除预设选中
+                    selectedPreset.value = null;
+                }
+            }
+        }
+    },
+    { deep: true }
+);
+
 onMounted(() => {
     // 只初始化参数，不自动开始分析
     initializeParams();
@@ -811,6 +931,13 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
+// 加载动画容器样式
+.loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 // 进度条增强样式
 .progress-bar-enhanced {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -848,32 +975,5 @@ onMounted(() => {
     }
 }
 
-// 强度对比卡片
-.strength-compare-card {
-    height: 100%;
-    transition: all 0.3s ease;
-
-    &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-    }
-}
-
-// 渐变背景
-.bg-gradient-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-}
-
-// 参数卡片样式
-.param-card {
-    transition: all 0.3s ease;
-    min-height: 200px;
-
-    &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
-        border-color: rgba(var(--v-theme-primary), 0.4) !important;
-    }
-}
+// 使用Vuetify默认样式
 </style>
