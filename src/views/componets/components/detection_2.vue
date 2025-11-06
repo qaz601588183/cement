@@ -69,18 +69,32 @@
                                     <div
                                         v-for="(step, index) in experiment.steps"
                                         :key="index"
-                                        class="step-item"
+                                        :class="['step-item', getStepAnimationClass(step)]"
                                     >
                                         <!-- 步骤节点 -->
                                         <div class="step-node">
-                                            <v-avatar
-                                                :color="getStepDotColor(experiment, index)"
-                                                size="40"
-                                            >
-                                                <v-icon color="white" size="20">
-                                                    {{ getStepIcon(experiment, index) }}
-                                                </v-icon>
-                                            </v-avatar>
+                                            <div class="step-avatar-wrapper">
+                                                <!-- 外圈光环效果 -->
+                                                <div
+                                                    v-if="step.status === 'active'"
+                                                    :class="[
+                                                        'pulse-ring',
+                                                        `pulse-${experiment.color}`,
+                                                    ]"
+                                                ></div>
+                                                <!-- 3D 卡片效果 -->
+                                                <div class="step-card-3d">
+                                                    <v-avatar
+                                                        :color="getStepDotColor(experiment, index)"
+                                                        size="40"
+                                                        class="step-avatar"
+                                                    >
+                                                        <v-icon color="white" size="20">
+                                                            {{ getStepIcon(experiment, index) }}
+                                                        </v-icon>
+                                                    </v-avatar>
+                                                </div>
+                                            </div>
                                             <div class="step-info">
                                                 <div class="step-name">{{ step.name }}</div>
                                                 <v-tooltip location="top">
@@ -99,17 +113,28 @@
                                             </div>
                                         </div>
 
-                                        <!-- 连接线 -->
+                                        <!-- 连接线 - 动态流动效果 -->
                                         <div
                                             v-if="index < experiment.steps.length - 1"
                                             class="step-connector"
                                         >
+                                            <div class="connector-line">
+                                                <div
+                                                    :class="[
+                                                        'connector-progress',
+                                                        step.status === 'completed'
+                                                            ? `connector-${experiment.color}`
+                                                            : 'connector-grey',
+                                                    ]"
+                                                ></div>
+                                            </div>
                                             <v-icon
                                                 :color="
                                                     step.status === 'completed'
                                                         ? experiment.color
                                                         : 'grey-lighten-2'
                                                 "
+                                                class="connector-arrow"
                                             >
                                                 mdi-arrow-right-thick
                                             </v-icon>
@@ -392,6 +417,13 @@ const getColorCode = (color: string): string => {
     return colorMap[color] || '#666';
 };
 
+// 获取步骤动画类
+const getStepAnimationClass = (step: ExperimentStep): string => {
+    if (step.status === 'completed') return 'step-completed';
+    if (step.status === 'active') return 'step-active';
+    return 'step-pending';
+};
+
 // 开始单个实验
 const startExperiment = (experiment: Experiment) => {
     experiment.running = true;
@@ -576,12 +608,41 @@ const resetExperiments = () => {
             gap: 8px;
             overflow-x: auto;
             padding: 8px 0;
+            perspective: 1000px; // 3D 透视效果
 
             // 单个步骤项
             .step-item {
                 display: flex;
                 align-items: center;
                 gap: 8px;
+                transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+                // 未开始状态
+                &.step-pending {
+                    .step-avatar-wrapper {
+                        opacity: 0.5;
+                        transform: scale(0.95);
+                    }
+                }
+
+                // 进行中状态
+                &.step-active {
+                    .step-avatar-wrapper {
+                        animation: float 2s ease-in-out infinite;
+                    }
+                }
+
+                // 已完成状态
+                &.step-completed {
+                    .step-avatar-wrapper {
+                        animation: bounceIn 0.6s ease-out;
+                    }
+
+                    .step-name {
+                        color: #4caf50;
+                        font-weight: 700;
+                    }
+                }
 
                 // 步骤节点
                 .step-node {
@@ -590,6 +651,69 @@ const resetExperiments = () => {
                     align-items: center;
                     gap: 8px;
                     min-width: 100px;
+
+                    // 头像包装器
+                    .step-avatar-wrapper {
+                        position: relative;
+                        transition: all 0.3s ease;
+
+                        // 脉冲光环效果
+                        .pulse-ring {
+                            position: absolute;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%);
+                            width: 60px;
+                            height: 60px;
+                            border-radius: 50%;
+                            animation: pulse 1.5s ease-out infinite;
+
+                            &.pulse-blue {
+                                border: 3px solid #2196f3;
+                            }
+
+                            &.pulse-red {
+                                border: 3px solid #f44336;
+                            }
+
+                            &.pulse-green {
+                                border: 3px solid #4caf50;
+                            }
+
+                            &.pulse-indigo {
+                                border: 3px solid #3f51b5;
+                            }
+
+                            &.pulse-brown {
+                                border: 3px solid #795548;
+                            }
+                        }
+
+                        // 3D 卡片效果
+                        .step-card-3d {
+                            position: relative;
+                            transform-style: preserve-3d;
+                            transition: transform 0.3s ease;
+
+                            &:hover {
+                                transform: rotateY(10deg) rotateX(5deg);
+                            }
+
+                            .step-avatar {
+                                box-shadow:
+                                    0 4px 8px rgba(0, 0, 0, 0.1),
+                                    0 2px 4px rgba(0, 0, 0, 0.06);
+                                transition: all 0.3s ease;
+
+                                &:hover {
+                                    box-shadow:
+                                        0 12px 24px rgba(0, 0, 0, 0.15),
+                                        0 6px 12px rgba(0, 0, 0, 0.1);
+                                    transform: translateZ(10px);
+                                }
+                            }
+                        }
+                    }
 
                     .step-info {
                         text-align: center;
@@ -600,6 +724,7 @@ const resetExperiments = () => {
                             color: #333;
                             white-space: nowrap;
                             margin-bottom: 4px;
+                            transition: all 0.3s ease;
                         }
 
                         .device-name {
@@ -612,21 +737,76 @@ const resetExperiments = () => {
                             padding: 2px 8px;
                             border-radius: 12px;
                             background-color: #f5f5f5;
-                            transition: all 0.2s;
+                            transition: all 0.3s ease;
+                            transform-style: preserve-3d;
 
                             &:hover {
-                                background-color: #e0e0e0;
+                                background: linear-gradient(145deg, #e6e6e6, #ffffff);
                                 color: #333;
+                                transform: translateY(-2px) translateZ(5px);
+                                box-shadow:
+                                    0 4px 8px rgba(0, 0, 0, 0.1),
+                                    0 2px 4px rgba(0, 0, 0, 0.06);
                             }
                         }
                     }
                 }
 
-                // 连接箭头
+                // 连接线容器
                 .step-connector {
+                    position: relative;
                     display: flex;
                     align-items: center;
                     margin: 0 4px;
+
+                    .connector-line {
+                        position: absolute;
+                        width: 40px;
+                        height: 3px;
+                        background-color: #e0e0e0;
+                        border-radius: 2px;
+                        overflow: hidden;
+
+                        .connector-progress {
+                            height: 100%;
+                            width: 100%;
+                            transform-origin: left;
+
+                            &.connector-blue {
+                                background: linear-gradient(90deg, #2196f3, #64b5f6);
+                                animation: flowRight 1.5s ease-in-out;
+                            }
+
+                            &.connector-red {
+                                background: linear-gradient(90deg, #f44336, #e57373);
+                                animation: flowRight 1.5s ease-in-out;
+                            }
+
+                            &.connector-green {
+                                background: linear-gradient(90deg, #4caf50, #81c784);
+                                animation: flowRight 1.5s ease-in-out;
+                            }
+
+                            &.connector-indigo {
+                                background: linear-gradient(90deg, #3f51b5, #7986cb);
+                                animation: flowRight 1.5s ease-in-out;
+                            }
+
+                            &.connector-brown {
+                                background: linear-gradient(90deg, #795548, #a1887f);
+                                animation: flowRight 1.5s ease-in-out;
+                            }
+
+                            &.connector-grey {
+                                background-color: #e0e0e0;
+                            }
+                        }
+                    }
+
+                    .connector-arrow {
+                        z-index: 1;
+                        transition: all 0.3s ease;
+                    }
                 }
             }
         }
@@ -684,6 +864,67 @@ const resetExperiments = () => {
 
     .bg-brown {
         background-color: #795548 !important;
+    }
+}
+
+// CSS 动画关键帧
+@keyframes pulse {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.3);
+        opacity: 0.5;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1.5);
+        opacity: 0;
+    }
+}
+
+@keyframes float {
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes bounceIn {
+    0% {
+        transform: scale(0.3);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    70% {
+        transform: scale(0.9);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes flowRight {
+    0% {
+        transform: scaleX(0);
+    }
+    100% {
+        transform: scaleX(1);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
     }
 }
 

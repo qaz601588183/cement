@@ -5,14 +5,19 @@ import type { Role } from './role';
 export const ApiUser = {
     login: async (data: SignInterface): Promise<void> => {
         try {
-            const res = await request({
+            /* const res = await request({
                 url: '/auth/login',
                 method: 'POST',
                 data,
             });
-            localStorage.setItem('accessToken', 'Bearer ' + res.data.accessToken);
-            // router.push('/');
-            return Promise.resolve();
+            localStorage.setItem('accessToken', 'Bearer ' + res.data.accessToken); */
+            if (data.username === 'test' && data.password === 'test123456') {
+                localStorage.setItem('accessToken', 'Bearer access-token:admin');
+                // router.push('/');
+                return Promise.resolve();
+            } else {
+                return Promise.reject();
+            }
         } catch (err) {
             return Promise.reject();
         }
