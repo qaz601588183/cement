@@ -1,6 +1,6 @@
 <template>
     <div class="experiment-detection-page">
-        <v-card elevation="0" class="mb-4">
+        <v-card elevation="0" class="my-4">
             <v-card-title class="text-h5 font-weight-bold">
                 <v-icon class="mr-2" color="primary">mdi-test-tube</v-icon>
                 试验检测
@@ -10,151 +10,152 @@
                     <strong>检测样品：</strong>{{ currentSample.code }} - {{ currentSample.name }}
                 </v-alert>
             </v-card-subtitle>
-        </v-card>
 
-        <!-- 实验流程展示 - 横向布局 -->
-        <v-row>
-            <v-col v-for="experiment in experiments" :key="experiment.id" cols="12">
-                <v-card :class="`experiment-card experiment-${experiment.id}`" elevation="2">
-                    <!-- 实验标题栏 -->
-                    <v-card-title
-                        :class="`text-h6 font-weight-bold text-white bg-${experiment.color}`"
-                    >
-                        <v-icon class="mr-2">{{ experiment.icon }}</v-icon>
-                        {{ experiment.title }}
-                        <v-spacer></v-spacer>
-                        <span class="text-caption">{{ experiment.description }}</span>
-                    </v-card-title>
+            <!-- 实验流程展示 - 横向布局 -->
+            <v-row class="pa-4">
+                <v-col v-for="experiment in experiments" :key="experiment.id" cols="12">
+                    <v-card :class="`experiment-card experiment-${experiment.id}`" elevation="2">
+                        <!-- 实验标题栏 -->
+                        <v-card-title
+                            :class="`text-h6 font-weight-bold text-white bg-${experiment.color}`"
+                        >
+                            <v-icon class="mr-2">{{ experiment.icon }}</v-icon>
+                            {{ experiment.title }}
+                            <v-spacer></v-spacer>
+                            <span class="text-caption">{{ experiment.description }}</span>
+                        </v-card-title>
 
-                    <!-- 横向流程区域 -->
-                    <v-card-text class="py-4">
-                        <div class="horizontal-flow">
-                            <!-- 左侧：开始按钮 -->
-                            <div class="flow-start">
-                                <v-btn
-                                    v-if="!experiment.completed && !experiment.running"
-                                    :color="experiment.color"
-                                    variant="flat"
-                                    size="large"
-                                    @click="startExperiment(experiment)"
-                                    prepend-icon="mdi-play"
-                                    class="start-btn"
-                                >
-                                    开始实验
-                                </v-btn>
-                                <v-btn
-                                    v-if="experiment.running"
-                                    color="warning"
-                                    variant="flat"
-                                    size="large"
-                                    @click="pauseExperiment(experiment)"
-                                    prepend-icon="mdi-pause"
-                                    class="start-btn"
-                                >
-                                    暂停
-                                </v-btn>
-                                <v-chip
-                                    v-if="experiment.completed"
-                                    :color="experiment.color"
-                                    variant="flat"
-                                    prepend-icon="mdi-check-circle"
-                                    size="large"
-                                    class="start-btn"
-                                >
-                                    已完成
-                                </v-chip>
-                            </div>
+                        <!-- 横向流程区域 -->
+                        <v-card-text class="py-4">
+                            <div class="horizontal-flow">
+                                <!-- 左侧：开始按钮 -->
+                                <div class="flow-start">
+                                    <v-btn
+                                        v-if="!experiment.completed && !experiment.running"
+                                        :color="experiment.color"
+                                        variant="flat"
+                                        size="large"
+                                        @click="startExperiment(experiment)"
+                                        prepend-icon="mdi-play"
+                                        class="start-btn"
+                                    >
+                                        开始实验
+                                    </v-btn>
+                                    <v-btn
+                                        v-if="experiment.running"
+                                        color="warning"
+                                        variant="flat"
+                                        size="large"
+                                        @click="pauseExperiment(experiment)"
+                                        prepend-icon="mdi-pause"
+                                        class="start-btn"
+                                    >
+                                        暂停
+                                    </v-btn>
+                                    <v-chip
+                                        v-if="experiment.completed"
+                                        :color="experiment.color"
+                                        variant="flat"
+                                        prepend-icon="mdi-check-circle"
+                                        size="large"
+                                        class="start-btn"
+                                    >
+                                        已完成
+                                    </v-chip>
+                                </div>
 
-                            <!-- 中间：实验步骤（横向） -->
-                            <div class="flow-steps">
-                                <div
-                                    v-for="(step, index) in experiment.steps"
-                                    :key="index"
-                                    class="step-item"
-                                >
-                                    <!-- 步骤节点 -->
-                                    <div class="step-node">
-                                        <v-avatar
-                                            :color="getStepDotColor(experiment, index)"
-                                            size="40"
+                                <!-- 中间：实验步骤（横向） -->
+                                <div class="flow-steps">
+                                    <div
+                                        v-for="(step, index) in experiment.steps"
+                                        :key="index"
+                                        class="step-item"
+                                    >
+                                        <!-- 步骤节点 -->
+                                        <div class="step-node">
+                                            <v-avatar
+                                                :color="getStepDotColor(experiment, index)"
+                                                size="40"
+                                            >
+                                                <v-icon color="white" size="20">
+                                                    {{ getStepIcon(experiment, index) }}
+                                                </v-icon>
+                                            </v-avatar>
+                                            <div class="step-info">
+                                                <div class="step-name">{{ step.name }}</div>
+                                                <v-tooltip location="top">
+                                                    <template v-slot:activator="{ props }">
+                                                        <div v-bind="props" class="device-name">
+                                                            <v-icon size="12" class="mr-1"
+                                                                >mdi-hammer-wrench</v-icon
+                                                            >
+                                                            {{ step.device }}
+                                                        </div>
+                                                    </template>
+                                                    <span>{{
+                                                        getDeviceStatusText(step.device)
+                                                    }}</span>
+                                                </v-tooltip>
+                                            </div>
+                                        </div>
+
+                                        <!-- 连接线 -->
+                                        <div
+                                            v-if="index < experiment.steps.length - 1"
+                                            class="step-connector"
                                         >
-                                            <v-icon color="white" size="20">
-                                                {{ getStepIcon(experiment, index) }}
+                                            <v-icon
+                                                :color="
+                                                    step.status === 'completed'
+                                                        ? experiment.color
+                                                        : 'grey-lighten-2'
+                                                "
+                                            >
+                                                mdi-arrow-right-thick
                                             </v-icon>
-                                        </v-avatar>
-                                        <div class="step-info">
-                                            <div class="step-name">{{ step.name }}</div>
-                                            <v-tooltip location="top">
-                                                <template v-slot:activator="{ props }">
-                                                    <div v-bind="props" class="device-name">
-                                                        <v-icon size="12" class="mr-1"
-                                                            >mdi-hammer-wrench</v-icon
-                                                        >
-                                                        {{ step.device }}
-                                                    </div>
-                                                </template>
-                                                <span>{{ getDeviceStatusText(step.device) }}</span>
-                                            </v-tooltip>
                                         </div>
                                     </div>
+                                </div>
 
-                                    <!-- 连接线 -->
-                                    <div
-                                        v-if="index < experiment.steps.length - 1"
-                                        class="step-connector"
-                                    >
-                                        <v-icon
-                                            :color="
-                                                step.status === 'completed'
-                                                    ? experiment.color
-                                                    : 'grey-lighten-2'
-                                            "
-                                        >
-                                            mdi-arrow-right-thick
+                                <!-- 右侧：实验结果 -->
+                                <div class="flow-result">
+                                    <div v-if="experiment.completed" class="result-display">
+                                        <v-icon :color="experiment.color" size="32" class="mb-2">
+                                            mdi-check-decagram
                                         </v-icon>
+                                        <div class="result-label">实验结果</div>
+                                        <div
+                                            class="result-value"
+                                            :style="{ color: getColorCode(experiment.color) }"
+                                        >
+                                            {{ experiment.result }}
+                                        </div>
+                                    </div>
+                                    <div v-else-if="experiment.running" class="result-display">
+                                        <v-progress-circular
+                                            indeterminate
+                                            :color="experiment.color"
+                                            size="32"
+                                            class="mb-2"
+                                        ></v-progress-circular>
+                                        <div class="result-label">实验进行中</div>
+                                        <div class="result-value">
+                                            {{ getExperimentProgress(experiment) }}%
+                                        </div>
+                                    </div>
+                                    <div v-else class="result-display">
+                                        <v-icon color="grey-lighten-2" size="32" class="mb-2">
+                                            mdi-clipboard-text-outline
+                                        </v-icon>
+                                        <div class="result-label text-grey">等待实验</div>
                                     </div>
                                 </div>
                             </div>
-
-                            <!-- 右侧：实验结果 -->
-                            <div class="flow-result">
-                                <div v-if="experiment.completed" class="result-display">
-                                    <v-icon :color="experiment.color" size="32" class="mb-2">
-                                        mdi-check-decagram
-                                    </v-icon>
-                                    <div class="result-label">实验结果</div>
-                                    <div
-                                        class="result-value"
-                                        :style="{ color: getColorCode(experiment.color) }"
-                                    >
-                                        {{ experiment.result }}
-                                    </div>
-                                </div>
-                                <div v-else-if="experiment.running" class="result-display">
-                                    <v-progress-circular
-                                        indeterminate
-                                        :color="experiment.color"
-                                        size="32"
-                                        class="mb-2"
-                                    ></v-progress-circular>
-                                    <div class="result-label">实验进行中</div>
-                                    <div class="result-value">
-                                        {{ getExperimentProgress(experiment) }}%
-                                    </div>
-                                </div>
-                                <div v-else class="result-display">
-                                    <v-icon color="grey-lighten-2" size="32" class="mb-2">
-                                        mdi-clipboard-text-outline
-                                    </v-icon>
-                                    <div class="result-label text-grey">等待实验</div>
-                                </div>
-                            </div>
-                        </div>
-                    </v-card-text>
-                </v-card>
-            </v-col>
-        </v-row>
-
+                        </v-card-text>
+                    </v-card>
+                </v-col>
+            </v-row>
+        </v-card>
         <!-- 操作按钮 -->
         <v-card elevation="0" class="mt-6">
             <v-card-actions class="justify-space-between">
@@ -443,7 +444,30 @@ const processNextStep = (experiment: Experiment) => {
 const completeExperiment = (experiment: Experiment) => {
     experiment.running = false;
     experiment.completed = true;
-    experiment.result = `${(Math.random() * 100).toFixed(2)}%`;
+
+    // 根据不同实验类型生成符合标准的结果
+    let resultValue: number;
+    switch (experiment.id) {
+        case 1: // 筛分 ≤5%
+            resultValue = Math.random() * 5;
+            break;
+        case 2: // 含泥量 ≤3.0%
+            resultValue = Math.random() * 3;
+            break;
+        case 3: // 泥块含量 ≤1.0%
+            resultValue = Math.random() * 1;
+            break;
+        case 4: // 针片状 ≤10%
+            resultValue = Math.random() * 10;
+            break;
+        case 5: // 压碎值 ≤25%
+            resultValue = Math.random() * 25;
+            break;
+        default:
+            resultValue = Math.random() * 10;
+    }
+
+    experiment.result = `${resultValue.toFixed(2)}%`;
 };
 
 // 上传结果
@@ -493,8 +517,6 @@ const resetExperiments = () => {
 
 <style lang="scss" scoped>
 .experiment-detection-page {
-    padding: 16px;
-
     .experiment-card {
         transition:
             transform 0.2s,

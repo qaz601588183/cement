@@ -108,7 +108,4 @@ const startDetection = (sample: Sample) => {
 </script>
 
 <style lang="scss" scoped>
-.sample-list-page {
-    padding: 16px;
-}
 </style>
