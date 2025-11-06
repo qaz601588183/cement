@@ -1,4 +1,5 @@
 import request from './axios';
+import { openMock, optimizeRes, predictRes } from './mock';
 
 /**
  * 强度预测请求参数
@@ -122,6 +123,15 @@ export class PredictAPI {
      * ```
      */
     static async predictStrength(data: PredictRequest): Promise<PredictResponse> {
+        // 如果开启 mock 模式，返回 mock 数据
+        if (openMock) {
+            console.log('🔧 Mock模式已开启，返回预测接口mock数据');
+            // 模拟网络延迟
+            await new Promise((resolve) => setTimeout(resolve, 1000 + Math.random() * 1000));
+            return Promise.resolve(predictRes as PredictResponse);
+        }
+
+        // 正常请求接口
         return request({
             url: '/api/predict',
             method: 'POST',
@@ -231,6 +241,15 @@ export class OptimizeAPI {
      * ```
      */
     static async optimizeConfig(data: OptimizeRequest): Promise<OptimizeResponse> {
+        // 如果开启 mock 模式，返回 mock 数据
+        if (openMock) {
+            console.log('🔧 Mock模式已开启，返回优化接口mock数据');
+            // 模拟网络延迟（优化接口通常较慢）
+            await new Promise((resolve) => setTimeout(resolve, 2000 + Math.random() * 2000));
+            return Promise.resolve(optimizeRes as OptimizeResponse);
+        }
+
+        // 正常请求接口
         return request({
             url: '/api/optimize',
             method: 'POST',
