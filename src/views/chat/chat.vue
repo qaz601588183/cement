@@ -13,8 +13,8 @@
             <v-divider></v-divider>
 
             <!-- 消息列表区域 -->
-            <v-card-text class="chat-messages pa-0" ref="messagesContainer">
-                <div class="messages-wrapper">
+            <v-card-text class="chat-messages pa-0">
+                <div class="messages-wrapper" ref="messagesContainer">
                     <div
                         v-for="(message, index) in messages"
                         :key="index"
@@ -96,6 +96,7 @@
 </template>
 
 <script setup lang="ts">
+import { ChatAPI } from '@/api/chat';
 import { nextTick, onMounted, ref } from 'vue';
 
 interface Message {
@@ -116,6 +117,32 @@ const messages = ref<Message[]>([
 const inputMessage = ref('');
 const isLoading = ref(false);
 const messagesContainer = ref<HTMLElement | null>(null);
+// 用于取消流式请求的函数（保留以备将来使用，如添加取消按钮）
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+let cancelRequest: (() => void) | null = null;
+
+// 打字机效果函数：逐字显示文本（正确处理 emoji 和多字节字符）
+const typeText = async (messageIndex: number, text: string, speed = 30) => {
+    // 使用 Array.from 或 [...text] 来正确分割包含 emoji 的字符串
+    const chars = Array.from(text);
+
+    for (let i = 0; i < chars.length; i++) {
+        messages.value[messageIndex].content += chars[i];
+
+        // 每隔几个字符滚动一次（优化性能）
+        if (i % 5 === 0) {
+            await nextTick();
+            scrollToBottom();
+        }
+
+        // 延迟
+        await new Promise((resolve) => setTimeout(resolve, speed));
+    }
+
+    // 最后滚动一次
+    await nextTick();
+    scrollToBottom();
+};
 
 // 发送消息
 const sendMessage = async () => {
@@ -128,7 +155,7 @@ const sendMessage = async () => {
     };
 
     messages.value.push(userMessage);
-    const question = inputMessage.value.trim();
+    const query = inputMessage.value.trim();
     inputMessage.value = '';
     isLoading.value = true;
 
@@ -136,42 +163,53 @@ const sendMessage = async () => {
     await nextTick();
     scrollToBottom();
 
-    // 模拟 AI 回复（这里可以替换为实际的 API 调用）
-    setTimeout(
-        () => {
-            const aiResponse: Message = {
-                role: 'ai',
-                content: generateAIResponse(question),
-                timestamp: new Date(),
-            };
-            messages.value.push(aiResponse);
-            isLoading.value = false;
+    // 创建 AI 消息占位符
+    const aiMessage: Message = {
+        role: 'ai',
+        content: '',
+        timestamp: new Date(),
+    };
+    messages.value.push(aiMessage);
 
+    // 获取当前消息的索引（用于响应式更新）
+    const aiMessageIndex = messages.value.length - 1;
+
+    // 调用流式接口
+    cancelRequest = ChatAPI.analyzeStream(
+        { query },
+        // 接收到数据块时的回调
+        async (message, content) => {
+            // 使用打字机效果显示每段内容
+            if (content) {
+                await typeText(aiMessageIndex, content, 20);
+            }
+
+            // 如果是 end 类型，标记完成
+            if (message.type === 'end') {
+                isLoading.value = false;
+                cancelRequest = null;
+            }
+        },
+        // 流式响应完成时的回调（确保流结束）
+        () => {
+            isLoading.value = false;
+            cancelRequest = null;
             nextTick(() => {
                 scrollToBottom();
             });
         },
-        1000 + Math.random() * 1000
+        // 错误回调
+        (error: Error) => {
+            console.error('流式请求错误:', error);
+            messages.value[aiMessageIndex].content =
+                `抱歉，处理您的请求时出现了错误：${error.message}`;
+            isLoading.value = false;
+            cancelRequest = null;
+            nextTick(() => {
+                scrollToBottom();
+            });
+        }
     );
-};
-
-// 生成 AI 回复（示例逻辑，可以替换为实际 API）
-const generateAIResponse = (question: string): string => {
-    const lowerQuestion = question.toLowerCase();
-
-    if (lowerQuestion.includes('配比') || lowerQuestion.includes('配合比')) {
-        return '关于混凝土配比设计，我可以帮您：<br>1. 根据强度需求推荐合适的配合比参数<br>2. 分析不同因素对强度的影响<br>3. 优化现有配比方案<br><br>您可以进入"混凝土配比设计流程"模块进行详细操作。';
-    }
-
-    if (lowerQuestion.includes('强度') || lowerQuestion.includes('抗压')) {
-        return '混凝土强度受多种因素影响：<br>• 水灰比：是最关键的因素，水灰比越小强度越高<br>• 水泥用量：直接影响基础强度<br>• 养护条件：温度、湿度和龄期都很重要<br>• 外加剂：减水剂可以降低用水量提高强度<br><br>您想了解哪个方面的详细信息？';
-    }
-
-    if (lowerQuestion.includes('你好') || lowerQuestion.includes('hello')) {
-        return '您好！很高兴为您服务。我是专门为混凝土配比设计提供帮助的 AI 助手。';
-    }
-
-    return `关于"${question}"，这是一个很好的问题。在混凝土配比设计中，我建议您：<br><br>1. 明确您的强度需求<br>2. 了解材料的基本属性<br>3. 使用我们的智能优化工具进行配比设计<br><br>如果您有具体的数据，可以进入相应的功能模块进行操作。`;
 };
 
 // 格式化消息内容（支持简单的换行）
@@ -188,7 +226,7 @@ const formatTime = (date: Date): string => {
 
 // 处理 Enter 键（发送）
 const handleEnter = () => {
-    if (!inputMessage.value.trim()) return;
+    if (!inputMessage.value.trim() || isLoading.value) return;
     sendMessage();
 };
 
@@ -200,7 +238,8 @@ const handleShiftEnter = () => {
 // 滚动到底部
 const scrollToBottom = () => {
     if (messagesContainer.value) {
-        const scrollElement = messagesContainer.value.querySelector('.messages-wrapper');
+        // messagesContainer 现在直接引用 .messages-wrapper 元素
+        const scrollElement = messagesContainer.value as HTMLElement;
         if (scrollElement) {
             scrollElement.scrollTop = scrollElement.scrollHeight;
         }
