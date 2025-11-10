@@ -19,7 +19,29 @@ const router = createRouter({
         },
         {
             path: '/',
-            redirect: '/concrete-design/guide',
+            redirect: '/home',
+        },
+        {
+            path: '/home',
+            name: 'home',
+            component: Layout,
+            meta: {
+                title: '首页',
+                icon: 'mdi-home',
+                visible: true,
+            },
+            children: [
+                {
+                    path: 'table',
+                    name: 'table',
+                    meta: {
+                        title: 'Table',
+                        icon: 'mdi-alpha-t',
+                        visible: true,
+                    },
+                    component: () => import('@/views/componets/deduce.vue'),
+                },
+            ],
         },
         {
             path: '/concrete-design',
