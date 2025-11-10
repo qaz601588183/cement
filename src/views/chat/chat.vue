@@ -539,17 +539,18 @@ onMounted(() => {
     .ant-prompts-title {
         font-size: 14px;
         font-weight: 600;
-        color: #ececec;
+        color: #ffffff;
         margin-bottom: 8px;
     }
 
-    .ant-prompts-item-label {
-        color: #ececec;
+    .ant-prompts-label {
+        color: #ffffff !important;
         font-weight: 500;
     }
 
-    .ant-prompts-item-description {
-        color: #9ca3af;
+    .ant-prompts-desc {
+        color: #ffffff !important;
+        opacity: 0.8;
     }
 }
 
