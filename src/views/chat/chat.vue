@@ -1,110 +1,81 @@
 <template>
-    <div class="chat-container">
-        <div class="chat-header">
-            <div class="header-title">
-                <robot-outlined
-                    :style="{ fontSize: '24px', marginRight: '12px', color: '#1890ff' }"
-                />
-                <span class="title-text">AI 智能对话</span>
-            </div>
-            <a-tag color="success">
-                <template #icon>
-                    <check-circle-outlined />
-                </template>
-                在线
-            </a-tag>
-        </div>
-
-        <div class="chat-messages" ref="messagesContainer">
-            <div v-for="(message, index) in messages" :key="index" class="message-wrapper">
-                <Bubble
-                    :content="message.content"
-                    :placement="message.role === 'user' ? 'end' : 'start'"
-                    :typing="false"
-                    :class="`message-bubble ${message.role === 'user' ? 'user-bubble' : 'ai-bubble'}`"
-                >
-                    <template #avatar>
-                        <a-avatar
-                            :style="{
-                                backgroundColor: message.role === 'user' ? '#1890ff' : '#52c41a',
-                            }"
-                        >
-                            <template #icon>
-                                <user-outlined v-if="message.role === 'user'" />
-                                <robot-outlined v-else />
-                            </template>
-                        </a-avatar>
-                    </template>
-                    <template #header>
-                        <div class="message-header">
-                            <span class="message-role">{{
-                                message.role === 'user' ? '你' : 'AI 助手'
-                            }}</span>
-                            <span class="message-time">{{ formatTime(message.timestamp) }}</span>
+    <div class="chat-page">
+        <div class="chat-main">
+            <!-- 消息列表 -->
+            <div class="messages-container" ref="messagesContainer">
+                <div v-for="(message, index) in messages" :key="index" class="message-item">
+                    <div class="message-content" :class="message.role">
+                        <div class="message-avatar">
+                            <a-avatar
+                                :size="32"
+                                :style="{
+                                    backgroundColor:
+                                        message.role === 'user' ? '#5436DA' : '#19C37D',
+                                }"
+                            >
+                                <template #icon>
+                                    <user-outlined v-if="message.role === 'user'" />
+                                    <robot-outlined v-else />
+                                </template>
+                            </a-avatar>
                         </div>
-                    </template>
-                </Bubble>
-            </div>
-
-            <!-- 加载中状态 -->
-            <div v-if="isLoading" class="message-wrapper">
-                <Bubble
-                    content="正在思考中..."
-                    placement="start"
-                    :typing="true"
-                    class="message-bubble ai-bubble"
-                >
-                    <template #avatar>
-                        <a-avatar :style="{ backgroundColor: '#52c41a' }">
-                            <template #icon>
-                                <robot-outlined />
-                            </template>
-                        </a-avatar>
-                    </template>
-                    <template #header>
-                        <div class="message-header">
-                            <span class="message-role">AI 助手</span>
+                        <div class="message-body">
+                            <div class="message-text" v-html="formatMessage(message.content)"></div>
                         </div>
-                    </template>
-                </Bubble>
-            </div>
-        </div>
+                    </div>
+                </div>
 
-        <div class="chat-input-wrapper">
-            <Sender
-                v-model:value="inputMessage"
-                placeholder="输入您的问题... (Enter 发送，Shift+Enter 换行)"
-                :loading="isLoading"
-                :disabled="isLoading"
-                @submit="sendMessage"
-                :style="{ width: '100%' }"
-            >
-                <template #actions>
+                <!-- 加载中 -->
+                <div v-if="isLoading" class="message-item">
+                    <div class="message-content ai">
+                        <div class="message-avatar">
+                            <a-avatar :size="32" :style="{ backgroundColor: '#19C37D' }">
+                                <template #icon>
+                                    <robot-outlined />
+                                </template>
+                            </a-avatar>
+                        </div>
+                        <div class="message-body">
+                            <div class="typing-indicator">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 输入框 -->
+            <div class="input-container">
+                <div class="input-wrapper">
+                    <a-textarea
+                        v-model:value="inputMessage"
+                        placeholder="发送消息给 AI 助手..."
+                        :auto-size="{ minRows: 1, maxRows: 6 }"
+                        :bordered="false"
+                        @keydown.enter.exact.prevent="sendMessage"
+                        @keydown.enter.shift.exact="() => {}"
+                        class="message-input"
+                    />
                     <a-button
-                        type="primary"
+                        type="text"
                         :disabled="!inputMessage.trim() || isLoading"
-                        :loading="isLoading"
                         @click="sendMessage"
-                        size="large"
+                        class="send-button"
                     >
-                        <send-outlined />
+                        <send-outlined :style="{ fontSize: '20px' }" />
                     </a-button>
-                </template>
-            </Sender>
+                </div>
+            </div>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
 import { ChatAPI } from '@/api/chat';
-import {
-    CheckCircleOutlined,
-    RobotOutlined,
-    SendOutlined,
-    UserOutlined,
-} from '@ant-design/icons-vue';
-import { Avatar as AAvatar, Button as AButton, Tag as ATag } from 'ant-design-vue';
-import { Bubble, Sender } from 'ant-design-x-vue';
+import { RobotOutlined, SendOutlined, UserOutlined } from '@ant-design/icons-vue';
+import { Avatar as AAvatar, Button as AButton, Textarea as ATextarea } from 'ant-design-vue';
 import { nextTick, onMounted, ref } from 'vue';
 
 interface Message {
@@ -117,8 +88,7 @@ interface Message {
 const messages = ref<Message[]>([
     {
         role: 'ai',
-        content:
-            '您好！我是 AI 智能助手，可以帮您解答关于混凝土配比设计的相关问题。有什么可以帮您的吗？',
+        content: '您好！我是 AI 智能助手，可以帮您解答关于混凝土配比设计的相关问题。',
         timestamp: new Date(),
     },
 ]);
@@ -127,17 +97,17 @@ const inputMessage = ref('');
 const isLoading = ref(false);
 const messagesContainer = ref<HTMLElement | null>(null);
 
-// 打字机队列：确保串行执行
+// 打字机队列
 let typewriterQueue: Promise<void> = Promise.resolve();
 
-// 打字机效果函数：逐字显示文本（正确处理 emoji 和多字节字符）
-const typeText = async (messageIndex: number, text: string, speed = 30) => {
+// 打字机效果
+const typeText = async (messageIndex: number, text: string, speed = 20) => {
     const chars = Array.from(text);
 
     for (let i = 0; i < chars.length; i++) {
         messages.value[messageIndex].content += chars[i];
 
-        if (i % 5 === 0) {
+        if (i % 3 === 0) {
             await nextTick();
             scrollToBottom();
         }
@@ -175,15 +145,15 @@ const sendMessage = async () => {
     messages.value.push(aiMessage);
 
     const aiMessageIndex = messages.value.length - 1;
-
-    // 重置打字机队列
     typewriterQueue = Promise.resolve();
 
     ChatAPI.analyzeStream(
         { query },
         (message, content) => {
             if (content) {
-                typewriterQueue = typewriterQueue.then(() => typeText(aiMessageIndex, content, 20));
+                typewriterQueue = typewriterQueue.then(() =>
+                    typeText(aiMessageIndex, content, 15)
+                );
             }
 
             if (message.type === 'end') {
@@ -195,28 +165,24 @@ const sendMessage = async () => {
         () => {
             typewriterQueue.then(() => {
                 isLoading.value = false;
-                nextTick(() => {
-                    scrollToBottom();
-                });
+                nextTick(() => scrollToBottom());
             });
         },
         (error: Error) => {
             console.error('流式请求错误:', error);
-            messages.value[aiMessageIndex].content =
-                `抱歉，处理您的请求时出现了错误：${error.message}`;
+            messages.value[aiMessageIndex].content = `抱歉，出现了错误：${error.message}`;
             isLoading.value = false;
-            nextTick(() => {
-                scrollToBottom();
-            });
+            nextTick(() => scrollToBottom());
         }
     );
 };
 
-// 格式化时间
-const formatTime = (date: Date): string => {
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    return `${hours}:${minutes}`;
+// 格式化消息
+const formatMessage = (content: string): string => {
+    return content
+        .replace(/\n/g, '<br>')
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
 };
 
 // 滚动到底部
@@ -232,102 +198,206 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.chat-container {
-    height: calc(100vh - 120px);
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 16px;
+.chat-page {
+    height: 100vh;
+    background: #f7f7f8;
+    display: flex;
+    justify-content: center;
+}
+
+.chat-main {
+    width: 100%;
+    max-width: 768px;
+    height: 100vh;
     display: flex;
     flex-direction: column;
-    background: #f5f5f5;
-    border-radius: 8px;
+    position: relative;
 }
 
-.chat-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 24px;
-    background: white;
-    border-radius: 8px 8px 0 0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    margin-bottom: 16px;
-
-    .header-title {
-        display: flex;
-        align-items: center;
-        font-size: 20px;
-        font-weight: 600;
-        color: #262626;
-
-        .title-text {
-            background: linear-gradient(135deg, #1890ff 0%, #36cfc9 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-    }
-}
-
-.chat-messages {
+.messages-container {
     flex: 1;
     overflow-y: auto;
+    padding: 24px 16px 120px;
+
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 3px;
+
+        &:hover {
+            background: #9ca3af;
+        }
+    }
+}
+
+.message-item {
+    margin-bottom: 32px;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.message-content {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+
+    &.user {
+        .message-body {
+            background: #f4f4f4;
+        }
+    }
+
+    &.ai {
+        .message-body {
+            background: transparent;
+        }
+    }
+}
+
+.message-avatar {
+    flex-shrink: 0;
+    margin-top: 4px;
+}
+
+.message-body {
+    flex: 1;
+    padding: 12px 0;
+    min-width: 0;
+}
+
+.message-text {
+    font-size: 15px;
+    line-height: 1.75;
+    color: #1f2937;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+
+    :deep(code) {
+        background: #f3f4f6;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: 'SF Mono', 'Consolas', monospace;
+        font-size: 0.9em;
+        color: #e63946;
+    }
+
+    :deep(strong) {
+        font-weight: 600;
+        color: #111827;
+    }
+
+    :deep(br) {
+        display: block;
+        content: '';
+        margin: 8px 0;
+    }
+}
+
+.typing-indicator {
+    display: flex;
+    gap: 6px;
+    padding: 8px 0;
+
+    span {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #9ca3af;
+        animation: bounce 1.4s infinite ease-in-out;
+
+        &:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        &:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        &:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+    }
+}
+
+.input-container {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 768px;
     padding: 16px;
+    background: linear-gradient(to top, #f7f7f8 80%, transparent);
+}
+
+.input-wrapper {
     background: white;
-    border-radius: 8px;
-    margin-bottom: 16px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e5e7eb;
+    border-radius: 24px;
+    display: flex;
+    align-items: flex-end;
+    padding: 12px 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s;
 
-    .message-wrapper {
-        margin-bottom: 24px;
-        animation: fadeIn 0.3s ease-in;
+    &:focus-within {
+        border-color: #5436da;
+        box-shadow: 0 4px 12px rgba(84, 54, 218, 0.15);
+    }
+}
 
-        &:last-child {
-            margin-bottom: 0;
-        }
+.message-input {
+    flex: 1;
+    font-size: 15px;
+    line-height: 24px;
+    resize: none;
+
+    :deep(.ant-input) {
+        padding: 0;
+        font-size: 15px;
+        line-height: 24px;
     }
 
-    .message-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 8px;
-
-        .message-role {
-            font-weight: 600;
-            font-size: 14px;
-            color: #262626;
-        }
-
-        .message-time {
-            font-size: 12px;
-            color: #8c8c8c;
+    :deep(textarea) {
+        &::placeholder {
+            color: #9ca3af;
         }
     }
 }
 
-.chat-input-wrapper {
-    background: white;
-    padding: 16px 24px;
-    border-radius: 0 0 8px 8px;
-    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
-}
+.send-button {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    margin-left: 8px;
+    transition: all 0.2s;
 
-:deep(.user-bubble) {
-    .ant-bubble-content {
-        background: linear-gradient(135deg, #1890ff 0%, #36cfc9 100%);
-        color: white;
-        border-radius: 18px 18px 4px 18px;
-        box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+    &:not(:disabled) {
+        color: #5436da;
+
+        &:hover {
+            background: #f3f0ff;
+        }
+
+        &:active {
+            background: #e9e5ff;
+        }
     }
-}
 
-:deep(.ai-bubble) {
-    .ant-bubble-content {
-        background: #f5f5f5;
-        color: #262626;
-        border-radius: 18px 18px 18px 4px;
-        border: 1px solid #e8e8e8;
+    &:disabled {
+        color: #d1d5db;
+        cursor: not-allowed;
     }
 }
 
@@ -342,31 +412,39 @@ onMounted(() => {
     }
 }
 
+@keyframes bounce {
+    0%,
+    60%,
+    100% {
+        transform: translateY(0);
+    }
+    30% {
+        transform: translateY(-8px);
+    }
+}
+
 // 移动端适配
 @media (max-width: 768px) {
-    .chat-container {
-        height: calc(100vh - 80px);
-        padding: 8px;
+    .messages-container {
+        padding: 16px 12px 100px;
     }
 
-    .chat-header {
-        padding: 12px 16px;
-
-        .header-title {
-            font-size: 18px;
-        }
+    .message-item {
+        margin-bottom: 24px;
     }
 
-    .chat-messages {
+    .message-content {
+        gap: 12px;
+    }
+
+    .input-container {
         padding: 12px;
-
-        .message-wrapper {
-            margin-bottom: 16px;
-        }
     }
 
-    .chat-input-wrapper {
-        padding: 12px 16px;
+    .input-wrapper {
+        border-radius: 20px;
+        padding: 10px 12px;
     }
 }
 </style>
+
