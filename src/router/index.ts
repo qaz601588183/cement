@@ -19,7 +19,7 @@ const router = createRouter({
         },
         {
             path: '/',
-            redirect: '/home',
+            redirect: '/home/chat',
         },
         {
             path: '/home',
@@ -32,14 +32,15 @@ const router = createRouter({
             },
             children: [
                 {
-                    path: 'table',
-                    name: 'table',
+                    path: 'chat',
+                    name: 'chat',
                     meta: {
-                        title: 'Table',
-                        icon: 'mdi-alpha-t',
+                        title: 'AI对话',
+                        icon: 'mdi-chat',
+                        keepAlive: false,
                         visible: true,
                     },
-                    component: () => import('@/views/componets/deduce.vue'),
+                    component: () => import('@/views/chat/chat.vue'),
                 },
             ],
         },
