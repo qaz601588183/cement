@@ -5,6 +5,7 @@ import App from './App.vue';
 import router, { syncRouter } from './router';
 import { vuetify } from '@/plugins/vuetify';
 import registeComponent from './components';
+import 'ant-design-vue/dist/reset.css';
 
 const app = createApp(App);
 registeComponent(app);

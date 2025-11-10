@@ -271,7 +271,7 @@
     </v-dialog>
 </template>
 <script lang="ts" setup>
-import { VTreeview } from 'vuetify/labs/VTreeview';
+import { VTreeview } from 'vuetify/labs/components';
 import useMenu from './hooks/useMenu';
 import useRoles from './hooks/useRole';
 import { VSpacer } from 'vuetify/components';

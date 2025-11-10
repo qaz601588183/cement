@@ -1,19 +1,22 @@
-import Vue from '@vitejs/plugin-vue';
-import VueJsx from '@vitejs/plugin-vue-jsx';
-import { fileURLToPath, URL } from 'node:url';
-import { ElementPlusResolver, VuetifyResolver } from 'unplugin-vue-components/resolvers';
-import Components from 'unplugin-vue-components/vite';
-import { defineConfig, loadEnv } from 'vite';
-import Vuetify from 'vite-plugin-vuetify';
+import Vue from "@vitejs/plugin-vue";
+import VueJsx from "@vitejs/plugin-vue-jsx";
+import { fileURLToPath, URL } from "node:url";
+import {
+    ElementPlusResolver,
+    VuetifyResolver,
+} from "unplugin-vue-components/resolvers";
+import Components from "unplugin-vue-components/vite";
+import { defineConfig, loadEnv } from "vite";
+import Vuetify from "vite-plugin-vuetify";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
     // 加载环境变量
     const env = loadEnv(mode, process.cwd());
-    const apiTarget = env.VITE_API || 'http://39.107.112.174';
+    const apiTarget = env.VITE_API || "http://39.107.112.174";
 
     return {
-        base: '/',
+        base: "/",
         // base: '/vue-material-admin',
         plugins: [
             Vue(),
@@ -22,29 +25,31 @@ export default defineConfig(({ mode }) => {
             VueJsx(), // 都用Vue还用什么JSX
             Components({
                 resolvers: [ElementPlusResolver(), VuetifyResolver()],
-                dts: 'typings/components.d.ts',
+                dts: "typings/components.d.ts",
             }),
         ],
         server: {
             open: false,
-            host: '0.0.0.0',
+            host: "0.0.0.0",
             port: 8088,
             hmr: true,
             // 配置代理解决跨域问题
             proxy: {
-                '/api': {
+                "/api": {
                     target: apiTarget,
                     changeOrigin: true,
                     secure: false,
-                    rewrite: (path) => path.replace(/^\/api/, ''),
+                    rewrite: (path) => path.replace(/^\/api/, ""),
                     configure: (proxy) => {
-                        proxy.on('proxyReq', (proxyReq, req) => {
+                        proxy.on("proxyReq", (proxyReq, req) => {
                             console.log(
                                 `[代理请求] ${req.method} ${req.url} -> ${apiTarget}${req.url}`
                             );
                         });
-                        proxy.on('proxyRes', (proxyRes, req) => {
-                            console.log(`[代理响应] ${proxyRes.statusCode} ${req.url}`);
+                        proxy.on("proxyRes", (proxyRes, req) => {
+                            console.log(
+                                `[代理响应] ${proxyRes.statusCode} ${req.url}`
+                            );
                         });
                     },
                 },
@@ -52,8 +57,7 @@ export default defineConfig(({ mode }) => {
         },
         resolve: {
             alias: {
-                // @ts-ignore
-                '@': fileURLToPath(new URL('./src', import.meta.url)),
+                "@": fileURLToPath(new URL("./src", import.meta.url)),
             },
         },
     };
