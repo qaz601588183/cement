@@ -139,7 +139,12 @@ interface Message {
 const messages = ref<Message[]>([
     {
         role: 'ai',
-        content: '您好！我是 AI 智能助手，可以帮您解答关于混凝土配比设计的相关问题。',
+        content: `您好！我是您的混凝土配比智能助手，我擅长用自然语言帮您完成强度预测、因果分析与配比优化。您可以这样提问：\n
+探索性：“哪些因素最影响28天强度？”“把粉煤灰从80提到120，强度能涨多少？”\n
+精确优化：“当前配比42.3 MPa，想拉到50 MPa，只调水泥和减水剂，给出具体千克数。”“C30基准，目标+10 %，能否只增减水剂实现？”\n
+反事实对比：“如果龄期从7天延长到14天，强度增益多少？”“水泥降30 kg，用矿渣补，水化热和强度怎样变化？”\n
+资源约束：“在水泥≤380 kg、水胶比≤0.45条件下，最高能做到多少强度？”
+`,
         timestamp: new Date(),
     },
 ]);
@@ -203,7 +208,8 @@ const handlePromptClick = ({ data }: { data: any }) => {
 
     const route = routeMap[data.key];
     if (route) {
-        router.push(route);
+        // router.push(route);
+        window.open(`#${route}`, '_blank');
     }
 };
 
@@ -437,10 +443,10 @@ onMounted(() => {
 }
 
 .input-container {
-    position: fixed;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
+    // position: fixed;
+    // bottom: 0;
+    // left: 50%;
+    transform: translateY(-120%);
     width: 100%;
     max-width: 768px;
     padding: 16px;
