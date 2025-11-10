@@ -1,8 +1,9 @@
 <template>
-    <div class="chat-page">
-        <div class="chat-main">
-            <!-- 消息列表 -->
-            <div class="messages-container" ref="messagesContainer">
+    <a-config-provider :theme="antdTheme">
+        <div class="chat-page">
+            <div class="chat-main">
+                <!-- 消息列表 -->
+                <div class="messages-container" ref="messagesContainer">
                 <div v-for="(message, index) in messages" :key="index" class="message-item">
                     <div class="message-content" :class="message.role">
                         <div class="message-avatar">
@@ -20,27 +21,29 @@
                             </a-avatar>
                         </div>
                         <div class="message-body">
-                            <div class="message-text" v-html="formatMessage(message.content)"></div>
-                        </div>
-                    </div>
-                </div>
+                            <div
+                                class="message-text"
+                                :class="{
+                                    typing:
+                                        message.role === 'ai' &&
+                                        isLoading &&
+                                        index === messages.length - 1,
+                                }"
+                                v-html="formatMessage(message.content)"
+                            ></div>
 
-                <!-- 加载中 -->
-                <div v-if="isLoading" class="message-item">
-                    <div class="message-content ai">
-                        <div class="message-avatar">
-                            <a-avatar :size="32" :style="{ backgroundColor: '#19C37D' }">
-                                <template #icon>
-                                    <robot-outlined />
-                                </template>
-                            </a-avatar>
-                        </div>
-                        <div class="message-body">
-                            <div class="typing-indicator">
-                                <span></span>
-                                <span></span>
-                                <span></span>
-                            </div>
+                            <!-- 结果提示集 -->
+                            <Prompts
+                                v-if="
+                                    message.role === 'ai' &&
+                                    message.analysisType &&
+                                    message.isCompleted
+                                "
+                                :title="getPromptsTitle(message.analysisType)"
+                                :items="getPromptsItems(message.analysisType)"
+                                @item-click="handlePromptClick"
+                                :style="{ marginTop: '16px' }"
+                            />
                         </div>
                     </div>
                 </div>
@@ -70,19 +73,67 @@
             </div>
         </div>
     </div>
+    </a-config-provider>
 </template>
 
 <script setup lang="ts">
 import { ChatAPI } from '@/api/chat';
-import { RobotOutlined, SendOutlined, UserOutlined } from '@ant-design/icons-vue';
-import { Avatar as AAvatar, Button as AButton, Textarea as ATextarea } from 'ant-design-vue';
-import { nextTick, onMounted, ref } from 'vue';
+import {
+    ArrowRightOutlined,
+    ExperimentOutlined,
+    RobotOutlined,
+    RocketOutlined,
+    SendOutlined,
+    UserOutlined,
+} from '@ant-design/icons-vue';
+import {
+    Avatar as AAvatar,
+    Button as AButton,
+    ConfigProvider as AConfigProvider,
+    Textarea as ATextarea,
+} from 'ant-design-vue';
+import { Prompts } from 'ant-design-x-vue';
+import { h, nextTick, onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
+
+// Ant Design 主题配置（暗色）
+const antdTheme = {
+    token: {
+        colorPrimary: '#5436DA',
+        borderRadius: 8,
+        colorBgContainer: '#1f1f1f',
+        colorBorder: '#3f3f3f',
+        colorText: '#ececec',
+        colorTextSecondary: '#9ca3af',
+        colorBgElevated: '#2a2a2a',
+        colorTextPlaceholder: '#6b7280',
+    },
+    components: {
+        Input: {
+            borderRadius: 24,
+            colorBgContainer: '#2a2a2a',
+            colorBorder: '#3f3f3f',
+            colorText: '#ececec',
+            colorTextPlaceholder: '#6b7280',
+        },
+        Button: {
+            colorText: '#ececec',
+            colorBgTextHover: '#3f3f3f',
+            colorBgTextActive: '#4a4a4a',
+        },
+        Avatar: {
+            colorTextLightSolid: '#ffffff',
+        },
+    },
+};
 
 interface Message {
     role: 'user' | 'ai';
     content: string;
     timestamp: Date;
     resultData?: any;
+    analysisType?: 'attribution' | 'intervention' | string;
+    isCompleted?: boolean;
 }
 
 const messages = ref<Message[]>([
@@ -96,16 +147,75 @@ const messages = ref<Message[]>([
 const inputMessage = ref('');
 const isLoading = ref(false);
 const messagesContainer = ref<HTMLElement | null>(null);
+const router = useRouter();
 
 // 打字机队列
 let typewriterQueue: Promise<void> = Promise.resolve();
 
+// 获取提示集标题
+const getPromptsTitle = (analysisType: string) => {
+    if (analysisType === 'attribution' || analysisType === 'intervention') {
+        return '💡 您可能还想：';
+    }
+    return '';
+};
+
+// 获取提示集项目
+const getPromptsItems = (analysisType: string): any[] => {
+    if (analysisType === 'attribution') {
+        return [
+            {
+                key: 'reverse-step1',
+                icon: h(ArrowRightOutlined, { style: { color: '#1890ff' } }),
+                label: '前往反向推演',
+                description: '基于分析结果进行反向推演配比设计',
+            },
+        ];
+    }
+
+    if (analysisType === 'intervention') {
+        return [
+            {
+                key: 'forward-step1',
+                icon: h(RocketOutlined, { style: { color: '#52c41a' } }),
+                label: '前往正向推演',
+                description: '根据当前配比进行正向推演优化',
+            },
+            {
+                key: 'detection',
+                icon: h(ExperimentOutlined, { style: { color: '#faad14' } }),
+                label: '前往智慧实验室',
+                description: '在实验室中验证和测试配比方案',
+            },
+        ];
+    }
+
+    return [];
+};
+
+// 处理提示项点击
+const handlePromptClick = ({ data }: { data: any }) => {
+    const routeMap: Record<string, string> = {
+        'reverse-step1': '/concrete-design/reverse-step1',
+        'forward-step1': '/concrete-design/forward-step1',
+        detection: '/concrete-design/detection',
+    };
+
+    const route = routeMap[data.key];
+    if (route) {
+        router.push(route);
+    }
+};
+
 // 打字机效果
 const typeText = async (messageIndex: number, text: string, speed = 20) => {
     const chars = Array.from(text);
+    const message = messages.value[messageIndex];
+
+    if (!message) return;
 
     for (let i = 0; i < chars.length; i++) {
-        messages.value[messageIndex].content += chars[i];
+        message.content += chars[i];
 
         if (i % 3 === 0) {
             await nextTick();
@@ -156,8 +266,21 @@ const sendMessage = async () => {
                 );
             }
 
+            // 处理 result 类型，保存分析类型
+            if (message.type === 'result' && message.data) {
+                const currentMessage = messages.value[aiMessageIndex];
+                if (currentMessage) {
+                    currentMessage.resultData = message.data;
+                    currentMessage.analysisType = message.data.analysis_type;
+                }
+            }
+
             if (message.type === 'end') {
                 typewriterQueue.then(() => {
+                    const currentMessage = messages.value[aiMessageIndex];
+                    if (currentMessage) {
+                        currentMessage.isCompleted = true;
+                    }
                     isLoading.value = false;
                 });
             }
@@ -170,7 +293,10 @@ const sendMessage = async () => {
         },
         (error: Error) => {
             console.error('流式请求错误:', error);
-            messages.value[aiMessageIndex].content = `抱歉，出现了错误：${error.message}`;
+            const currentMessage = messages.value[aiMessageIndex];
+            if (currentMessage) {
+                currentMessage.content = `抱歉，出现了错误：${error.message}`;
+            }
             isLoading.value = false;
             nextTick(() => scrollToBottom());
         }
@@ -200,9 +326,10 @@ onMounted(() => {
 <style scoped lang="scss">
 .chat-page {
     height: 100vh;
-    background: #f7f7f8;
+    background: #0d0d0d;
     display: flex;
     justify-content: center;
+    overflow: hidden;
 }
 
 .chat-main {
@@ -212,6 +339,7 @@ onMounted(() => {
     display: flex;
     flex-direction: column;
     position: relative;
+    overflow: hidden;
 }
 
 .messages-container {
@@ -228,11 +356,11 @@ onMounted(() => {
     }
 
     &::-webkit-scrollbar-thumb {
-        background: #d1d5db;
+        background: #3f3f3f;
         border-radius: 3px;
 
         &:hover {
-            background: #9ca3af;
+            background: #525252;
         }
     }
 }
@@ -249,13 +377,16 @@ onMounted(() => {
 
     &.user {
         .message-body {
-            background: #f4f4f4;
+            background: #2f2f2f;
+            padding: 12px 16px;
+            border-radius: 12px;
         }
     }
 
     &.ai {
         .message-body {
             background: transparent;
+            padding: 12px 0;
         }
     }
 }
@@ -267,61 +398,41 @@ onMounted(() => {
 
 .message-body {
     flex: 1;
-    padding: 12px 0;
     min-width: 0;
 }
 
 .message-text {
     font-size: 15px;
     line-height: 1.75;
-    color: #1f2937;
+    color: #ececec;
     word-wrap: break-word;
     white-space: pre-wrap;
 
+    &.typing::after {
+        content: '|';
+        color: #6b7280;
+        animation: blink 1s step-end infinite;
+        margin-left: 2px;
+    }
+
     :deep(code) {
-        background: #f3f4f6;
+        background: #2a2a2a;
         padding: 2px 6px;
         border-radius: 4px;
         font-family: 'SF Mono', 'Consolas', monospace;
         font-size: 0.9em;
-        color: #e63946;
+        color: #60a5fa;
     }
 
     :deep(strong) {
         font-weight: 600;
-        color: #111827;
+        color: #ffffff;
     }
 
     :deep(br) {
         display: block;
         content: '';
         margin: 8px 0;
-    }
-}
-
-.typing-indicator {
-    display: flex;
-    gap: 6px;
-    padding: 8px 0;
-
-    span {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: #9ca3af;
-        animation: bounce 1.4s infinite ease-in-out;
-
-        &:nth-child(1) {
-            animation-delay: 0s;
-        }
-
-        &:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        &:nth-child(3) {
-            animation-delay: 0.4s;
-        }
     }
 }
 
@@ -333,22 +444,22 @@ onMounted(() => {
     width: 100%;
     max-width: 768px;
     padding: 16px;
-    background: linear-gradient(to top, #f7f7f8 80%, transparent);
+    background: linear-gradient(to top, #0d0d0d 80%, transparent);
 }
 
 .input-wrapper {
-    background: white;
-    border: 1px solid #e5e7eb;
+    background: #1f1f1f;
+    border: 1px solid #3f3f3f;
     border-radius: 24px;
     display: flex;
     align-items: flex-end;
     padding: 12px 16px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     transition: all 0.2s;
 
     &:focus-within {
         border-color: #5436da;
-        box-shadow: 0 4px 12px rgba(84, 54, 218, 0.15);
+        box-shadow: 0 4px 12px rgba(84, 54, 218, 0.3);
     }
 }
 
@@ -363,12 +474,6 @@ onMounted(() => {
         font-size: 15px;
         line-height: 24px;
     }
-
-    :deep(textarea) {
-        &::placeholder {
-            color: #9ca3af;
-        }
-    }
 }
 
 .send-button {
@@ -381,24 +486,6 @@ onMounted(() => {
     justify-content: center;
     border-radius: 50%;
     margin-left: 8px;
-    transition: all 0.2s;
-
-    &:not(:disabled) {
-        color: #5436da;
-
-        &:hover {
-            background: #f3f0ff;
-        }
-
-        &:active {
-            background: #e9e5ff;
-        }
-    }
-
-    &:disabled {
-        color: #d1d5db;
-        cursor: not-allowed;
-    }
 }
 
 @keyframes fadeIn {
@@ -412,14 +499,57 @@ onMounted(() => {
     }
 }
 
-@keyframes bounce {
+@keyframes blink {
     0%,
-    60%,
-    100% {
-        transform: translateY(0);
+    50% {
+        opacity: 1;
     }
-    30% {
-        transform: translateY(-8px);
+    51%,
+    100% {
+        opacity: 0;
+    }
+}
+
+// Prompts 组件样式（暗色主题）
+:deep(.ant-prompts) {
+    background: #2a2a2a;
+    border-radius: 8px;
+    padding: 12px;
+    border: 1px solid #3f3f3f;
+
+    .ant-prompts-item {
+        background: #2f2f2f;
+        border: 1px solid #3f3f3f;
+        border-radius: 8px;
+        transition: all 0.2s;
+        cursor: pointer;
+
+        &:hover {
+            border-color: #5436da;
+            box-shadow: 0 2px 8px rgba(84, 54, 218, 0.3);
+            transform: translateY(-1px);
+            background: #333333;
+        }
+
+        &:active {
+            transform: translateY(0);
+        }
+    }
+
+    .ant-prompts-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #ececec;
+        margin-bottom: 8px;
+    }
+
+    .ant-prompts-item-label {
+        color: #ececec;
+        font-weight: 500;
+    }
+
+    .ant-prompts-item-description {
+        color: #9ca3af;
     }
 }
 
