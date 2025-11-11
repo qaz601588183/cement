@@ -284,6 +284,13 @@ const sendMessage = async () => {
                 if (currentMessage) {
                     currentMessage.resultData = message.data;
                     currentMessage.analysisType = message.data.analysis_type;
+                    
+                    // 如果有 recommendations 字段，将其内容添加到消息中
+                    if (message.data.recommendations) {
+                        typewriterQueue = typewriterQueue.then(() =>
+                            typeText(aiMessageIndex, '\n\n' + message.data.recommendations, 15)
+                        );
+                    }
                 }
             }
 
