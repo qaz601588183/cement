@@ -4,80 +4,92 @@
             <div class="chat-main">
                 <!-- 消息列表 -->
                 <div class="messages-container" ref="messagesContainer">
-                <div v-for="(message, index) in messages" :key="index" class="message-item">
-                    <div class="message-content" :class="message.role">
-                        <div class="message-avatar">
-                            <a-avatar
-                                :size="32"
-                                :style="{
-                                    backgroundColor:
-                                        message.role === 'user' ? '#5436DA' : '#19C37D',
-                                }"
-                            >
-                                <template #icon>
-                                    <user-outlined v-if="message.role === 'user'" />
-                                    <robot-outlined v-else />
-                                </template>
-                            </a-avatar>
-                        </div>
-                        <div class="message-body">
-                            <div
-                                class="message-text"
-                                :class="{
-                                    typing:
-                                        message.role === 'ai' &&
-                                        isLoading &&
-                                        index === messages.length - 1,
-                                }"
-                                v-html="formatMessage(message.content)"
-                            ></div>
+                    <div
+                        v-for="(message, index) in messages"
+                        :key="index"
+                        class="message-item"
+                    >
+                        <div class="message-content" :class="message.role">
+                            <div class="message-avatar">
+                                <a-avatar
+                                    :size="32"
+                                    :style="{
+                                        backgroundColor:
+                                            message.role === 'user'
+                                                ? '#5436DA'
+                                                : '#19C37D',
+                                    }"
+                                >
+                                    <template #icon>
+                                        <user-outlined
+                                            v-if="message.role === 'user'"
+                                        />
+                                        <robot-outlined v-else />
+                                    </template>
+                                </a-avatar>
+                            </div>
+                            <div class="message-body">
+                                <div
+                                    class="message-text"
+                                    :class="{
+                                        typing:
+                                            message.role === 'ai' &&
+                                            isLoading &&
+                                            index === messages.length - 1,
+                                    }"
+                                    v-html="formatMessage(message.content)"
+                                ></div>
 
-                            <!-- 结果提示集 -->
-                            <Prompts
-                                v-if="
-                                    message.role === 'ai' &&
-                                    message.analysisType &&
-                                    message.isCompleted
-                                "
-                                :title="getPromptsTitle(message.analysisType)"
-                                :items="getPromptsItems(message.analysisType)"
-                                @item-click="handlePromptClick"
-                                :style="{ marginTop: '16px' }"
-                            />
+                                <!-- 结果提示集 -->
+                                <Prompts
+                                    v-if="
+                                        message.role === 'ai' &&
+                                        message.analysisType &&
+                                        message.isCompleted
+                                    "
+                                    :title="
+                                        getPromptsTitle(message.analysisType)
+                                    "
+                                    :items="
+                                        getPromptsItems(message.analysisType)
+                                    "
+                                    @item-click="handlePromptClick"
+                                    :style="{ marginTop: '16px' }"
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- 输入框 -->
-            <div class="input-container">
-                <div class="input-wrapper">
-                    <a-textarea
-                        v-model:value="inputMessage"
-                        placeholder="发送消息给 AI 助手..."
-                        :auto-size="{ minRows: 1, maxRows: 6 }"
-                        :bordered="false"
-                        @keydown.enter.exact.prevent="sendMessage"
-                        @keydown.enter.shift.exact="() => {}"
-                        class="message-input"
-                    />
-                    <a-button
-                        type="text"
-                        :disabled="!inputMessage.trim() || isLoading"
-                        @click="sendMessage"
-                        class="send-button"
-                    >
-                        <send-outlined :style="{ fontSize: '20px' }" />
-                    </a-button>
+                <!-- 输入框 -->
+                <div class="input-container">
+                    <div class="input-wrapper">
+                        <a-textarea
+                            v-model:value="inputMessage"
+                            placeholder="发送消息给 AI 助手..."
+                            :auto-size="{ minRows: 1, maxRows: 6 }"
+                            :bordered="false"
+                            @keydown.enter.exact.prevent="sendMessage"
+                            @keydown.enter.shift.exact="() => {}"
+                            class="message-input"
+                        />
+                        <a-button
+                            type="text"
+                            :disabled="!inputMessage.trim() || isLoading"
+                            @click="sendMessage"
+                            class="send-button"
+                        >
+                            <send-outlined :style="{ fontSize: '20px' }" />
+                        </a-button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
     </a-config-provider>
 </template>
 
 <script setup lang="ts">
-import { ChatAPI } from '@/api/chat';
+import { ChatAPI } from "@/api/chat";
 import {
     ArrowRightOutlined,
     ExperimentOutlined,
@@ -85,60 +97,60 @@ import {
     RocketOutlined,
     SendOutlined,
     UserOutlined,
-} from '@ant-design/icons-vue';
+} from "@ant-design/icons-vue";
 import {
     Avatar as AAvatar,
     Button as AButton,
     ConfigProvider as AConfigProvider,
     Textarea as ATextarea,
-} from 'ant-design-vue';
-import { Prompts } from 'ant-design-x-vue';
-import { h, nextTick, onMounted, ref } from 'vue';
-import { useRouter } from 'vue-router';
+} from "ant-design-vue";
+import { Prompts } from "ant-design-x-vue";
+import { h, nextTick, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 
 // Ant Design 主题配置（暗色）
 const antdTheme = {
     token: {
-        colorPrimary: '#5436DA',
+        colorPrimary: "#5436DA",
         borderRadius: 8,
-        colorBgContainer: '#1f1f1f',
-        colorBorder: '#3f3f3f',
-        colorText: '#ececec',
-        colorTextSecondary: '#9ca3af',
-        colorBgElevated: '#2a2a2a',
-        colorTextPlaceholder: '#6b7280',
+        colorBgContainer: "#1f1f1f",
+        colorBorder: "#3f3f3f",
+        colorText: "#ececec",
+        colorTextSecondary: "#9ca3af",
+        colorBgElevated: "#2a2a2a",
+        colorTextPlaceholder: "#6b7280",
     },
     components: {
         Input: {
             borderRadius: 24,
-            colorBgContainer: '#2a2a2a',
-            colorBorder: '#3f3f3f',
-            colorText: '#ececec',
-            colorTextPlaceholder: '#6b7280',
+            colorBgContainer: "#2a2a2a",
+            colorBorder: "#3f3f3f",
+            colorText: "#ececec",
+            colorTextPlaceholder: "#6b7280",
         },
         Button: {
-            colorText: '#ececec',
-            colorBgTextHover: '#3f3f3f',
-            colorBgTextActive: '#4a4a4a',
+            colorText: "#ececec",
+            colorBgTextHover: "#3f3f3f",
+            colorBgTextActive: "#4a4a4a",
         },
         Avatar: {
-            colorTextLightSolid: '#ffffff',
+            colorTextLightSolid: "#ffffff",
         },
     },
 };
 
 interface Message {
-    role: 'user' | 'ai';
+    role: "user" | "ai";
     content: string;
     timestamp: Date;
     resultData?: any;
-    analysisType?: 'attribution' | 'intervention' | string;
+    analysisType?: "attribution" | "intervention" | string;
     isCompleted?: boolean;
 }
 
 const messages = ref<Message[]>([
     {
-        role: 'ai',
+        role: "ai",
         content: `您好！我是您的混凝土配比智能助手，我擅长用自然语言帮您完成强度预测、因果分析与配比优化。您可以这样提问：\n
 探索性：“哪些因素最影响28天强度？”“把粉煤灰从80提到120，强度能涨多少？”\n
 精确优化：“当前配比42.3 MPa，想拉到50 MPa，只调水泥和减水剂，给出具体千克数。”“C30基准，目标+10 %，能否只增减水剂实现？”\n
@@ -149,7 +161,7 @@ const messages = ref<Message[]>([
     },
 ]);
 
-const inputMessage = ref('');
+const inputMessage = ref("");
 const isLoading = ref(false);
 const messagesContainer = ref<HTMLElement | null>(null);
 const router = useRouter();
@@ -159,38 +171,38 @@ let typewriterQueue: Promise<void> = Promise.resolve();
 
 // 获取提示集标题
 const getPromptsTitle = (analysisType: string) => {
-    if (analysisType === 'attribution' || analysisType === 'intervention') {
-        return '💡 您可能还想：';
+    if (analysisType === "attribution" || analysisType === "intervention") {
+        return "💡 您可能还想：";
     }
-    return '';
+    return "";
 };
 
 // 获取提示集项目
 const getPromptsItems = (analysisType: string): any[] => {
-    if (analysisType === 'attribution') {
+    if (analysisType === "attribution") {
         return [
             {
-                key: 'reverse-step1',
-                icon: h(ArrowRightOutlined, { style: { color: '#1890ff' } }),
-                label: '前往反向推演',
-                description: '基于分析结果进行反向推演配比设计',
+                key: "reverse-step1",
+                icon: h(ArrowRightOutlined, { style: { color: "#1890ff" } }),
+                label: "前往反向推演",
+                description: "基于分析结果进行反向推演配比设计",
             },
         ];
     }
 
-    if (analysisType === 'intervention') {
+    if (analysisType === "intervention") {
         return [
             {
-                key: 'forward-step1',
-                icon: h(RocketOutlined, { style: { color: '#52c41a' } }),
-                label: '前往正向推演',
-                description: '根据当前配比进行正向推演优化',
+                key: "forward-step1",
+                icon: h(RocketOutlined, { style: { color: "#52c41a" } }),
+                label: "前往正向推演",
+                description: "根据当前配比进行正向推演优化",
             },
             {
-                key: 'detection',
-                icon: h(ExperimentOutlined, { style: { color: '#faad14' } }),
-                label: '前往智慧实验室',
-                description: '在实验室中验证和测试配比方案',
+                key: "detection",
+                icon: h(ExperimentOutlined, { style: { color: "#faad14" } }),
+                label: "前往智慧实验室",
+                description: "在实验室中验证和测试配比方案",
             },
         ];
     }
@@ -201,15 +213,15 @@ const getPromptsItems = (analysisType: string): any[] => {
 // 处理提示项点击
 const handlePromptClick = ({ data }: { data: any }) => {
     const routeMap: Record<string, string> = {
-        'reverse-step1': '/concrete-design/reverse-step1',
-        'forward-step1': '/concrete-design/forward-step1',
-        detection: '/concrete-design/detection',
+        "reverse-step1": "/concrete-design/reverse-step1",
+        "forward-step1": "/concrete-design/forward-step1",
+        detection: "/concrete-design/detection",
     };
 
     const route = routeMap[data.key];
     if (route) {
         // router.push(route);
-        window.open(`#${route}`, '_blank');
+        window.open(`#${route}`, "_blank");
     }
 };
 
@@ -240,22 +252,22 @@ const sendMessage = async () => {
     if (!inputMessage.value.trim() || isLoading.value) return;
 
     const userMessage: Message = {
-        role: 'user',
+        role: "user",
         content: inputMessage.value.trim(),
         timestamp: new Date(),
     };
 
     messages.value.push(userMessage);
     const query = inputMessage.value.trim();
-    inputMessage.value = '';
+    inputMessage.value = "";
     isLoading.value = true;
 
     await nextTick();
     scrollToBottom();
 
     const aiMessage: Message = {
-        role: 'ai',
-        content: '',
+        role: "ai",
+        content: "",
         timestamp: new Date(),
     };
     messages.value.push(aiMessage);
@@ -267,34 +279,38 @@ const sendMessage = async () => {
         { query },
         (message, content) => {
             if (/[─]{20,}/.test(content)) {
-                content = '─────────────────────────────────────'
+                content = "─────────────────────────────────────";
             }
             if (/[═]{20,}/.test(content)) {
-                content = '═════════════════════════════════════'
+                content = "═════════════════════════════════════";
             }
-            if (content || content === '') {
+            if (content || content === "") {
                 typewriterQueue = typewriterQueue.then(() =>
-                    typeText(aiMessageIndex, content+'\n', 15)
+                    typeText(aiMessageIndex, content + "\n", 15)
                 );
             }
 
             // 处理 result 类型，保存分析类型
-            if (message.type === 'result' && message.data) {
+            if (message.type === "result" && message.data) {
                 const currentMessage = messages.value[aiMessageIndex];
                 if (currentMessage) {
                     currentMessage.resultData = message.data;
                     currentMessage.analysisType = message.data.analysis_type;
-                    
+
                     // 如果有 recommendations 字段，将其内容添加到消息中
                     if (message.data.recommendations) {
                         typewriterQueue = typewriterQueue.then(() =>
-                            typeText(aiMessageIndex, '\n\n' + message.data.recommendations, 15)
+                            typeText(
+                                aiMessageIndex,
+                                "\n\n" + message.data.recommendations,
+                                15
+                            )
                         );
                     }
                 }
             }
 
-            if (message.type === 'end') {
+            if (message.type === "end") {
                 typewriterQueue.then(() => {
                     const currentMessage = messages.value[aiMessageIndex];
                     if (currentMessage) {
@@ -311,7 +327,7 @@ const sendMessage = async () => {
             });
         },
         (error: Error) => {
-            console.error('流式请求错误:', error);
+            console.error("流式请求错误:", error);
             const currentMessage = messages.value[aiMessageIndex];
             if (currentMessage) {
                 currentMessage.content = `抱歉，出现了错误：${error.message}`;
@@ -325,15 +341,16 @@ const sendMessage = async () => {
 // 格式化消息
 const formatMessage = (content: string): string => {
     return content
-        .replace(/\n/g, '<br>')
-        .replace(/`([^`]+)`/g, '<code>$1</code>')
-        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+        .replace(/\n/g, "<br>")
+        .replace(/`([^`]+)`/g, "<code>$1</code>")
+        .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
 };
 
 // 滚动到底部
 const scrollToBottom = () => {
     if (messagesContainer.value) {
-        messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
+        messagesContainer.value.scrollTop =
+            messagesContainer.value.scrollHeight;
     }
 };
 
@@ -428,7 +445,7 @@ onMounted(() => {
     white-space: pre-wrap;
 
     &.typing::after {
-        content: '|';
+        content: "|";
         color: #6b7280;
         animation: blink 1s step-end infinite;
         margin-left: 2px;
@@ -438,7 +455,7 @@ onMounted(() => {
         background: #2a2a2a;
         padding: 2px 6px;
         border-radius: 4px;
-        font-family: 'SF Mono', 'Consolas', monospace;
+        font-family: "SF Mono", "Consolas", monospace;
         font-size: 0.9em;
         color: #60a5fa;
     }
@@ -450,7 +467,7 @@ onMounted(() => {
 
     :deep(br) {
         display: block;
-        content: '';
+        content: "";
         margin: 8px 0;
     }
 }
@@ -597,4 +614,3 @@ onMounted(() => {
     }
 }
 </style>
-

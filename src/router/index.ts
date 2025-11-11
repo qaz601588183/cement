@@ -230,7 +230,7 @@ export async function syncRouter(toFirst = false) {
         // 路由已在上面静态配置，这里不再需要动态添加
         // 直接返回成功，保持与原来的接口一致
         if (toFirst) {
-            await router.push("/concrete-design/guide");
+            await router.push("/home/chat");
         }
         return Promise.resolve(true);
     } catch (err) {
