@@ -14,8 +14,19 @@
             rounded="lg"
         ></v-list-item>
 
-        <!-- 有二级的菜单 -->
-        <v-list-group v-if="item.meta?.visible && item.children && item.children.length > 0">
+        <!-- 有二级的菜单且只有一个子菜单 -->
+        <v-list-item
+            v-if="item.meta?.visible && item.children && item.children.length === 1 && item.children[0].meta?.visible && (item.meta?.singleChildRedirect || item.name === 'home')"
+            :prepend-icon="item.children[0].meta?.icon as any"
+            :title="item.children[0].meta?.title as any"
+            :to="{ name: item.children[0].name }"
+            class="mx-1"
+            active-class="nav_active"
+            rounded="lg"
+        ></v-list-item>
+
+        <!-- 有二级的菜单且有多个子菜单 -->
+        <v-list-group v-if="item.meta?.visible && item.children && item.children.length > 1">
             <template v-slot:activator="{ props }">
                 <v-list-item
                     v-bind="props"

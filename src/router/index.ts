@@ -29,6 +29,7 @@ const router = createRouter({
                 title: "首页",
                 icon: "mdi-home",
                 visible: true,
+                singleChildRedirect: true, // 添加标记，表示只有一个子菜单时直接重定向
             },
             children: [
                 {
