@@ -86,6 +86,10 @@ export default defineComponent({
         const isLoading = ref(false);
         const messagesContainer: Ref<HTMLElement | null> = ref(null);
 
+        // 视频遮罩控制
+        const showVideoMask = ref(false);
+        const videoRef: Ref<HTMLVideoElement | null> = ref(null);
+
         // 打字机队列
         let typewriterQueue: Promise<void> = Promise.resolve();
 
@@ -282,15 +286,73 @@ export default defineComponent({
             }
         };
 
+        // 关闭视频遮罩
+        const closeVideoMask = () => {
+            showVideoMask.value = false;
+            // 标记为已观看，下次不再显示
+            localStorage.setItem("chat_video_watched", "true");
+        };
+
+        // 视频播放结束时自动关闭
+        const handleVideoEnded = () => {
+            closeVideoMask();
+        };
+
         // 生命周期
         onMounted(() => {
             scrollToBottom();
+
+            // 检查是否首次访问
+            const hasWatched = localStorage.getItem("chat_video_watched");
+            if (!hasWatched) {
+                showVideoMask.value = true;
+
+                // 如果有视频元素，设置播放结束监听
+                nextTick(() => {
+                    if (videoRef.value) {
+                        videoRef.value.addEventListener(
+                            "ended",
+                            handleVideoEnded
+                        );
+                    }
+                });
+            }
         });
 
         // 返回 JSX render 函数
         return () => (
             <AConfigProvider theme={antdTheme}>
                 <div class="chat-page">
+                    {/* 视频遮罩 */}
+                    {showVideoMask.value && (
+                        <div class="video-mask" onClick={closeVideoMask}>
+                            <div
+                                class="video-container"
+                                onClick={(e: MouseEvent) => e.stopPropagation()}
+                            >
+                                <button
+                                    class="close-button"
+                                    onClick={closeVideoMask}
+                                >
+                                    ✕
+                                </button>
+                                <video
+                                    ref={videoRef}
+                                    class="intro-video"
+                                    autoplay
+                                    controls
+                                    onEnded={handleVideoEnded}
+                                >
+                                    <source
+                                        src="/video/intro.mp4"
+                                        type="video/mp4"
+                                    />
+                                    您的浏览器不支持视频播放
+                                </video>
+                            </div>
+                        </div>
+                    )}
+
                     <div class="chat-main">
                         {/* 消息列表 */}
                         <div class="messages-container" ref={messagesContainer}>
@@ -641,6 +703,81 @@ export default defineComponent({
     }
 }
 
+// 视频遮罩样式
+.video-mask {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.video-container {
+    position: relative;
+    width: 90%;
+    max-width: 1000px;
+    background: #1a1a1a;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    animation: slideUp 0.4s ease-out;
+}
+
+.close-button {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    color: #ffffff;
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: rotate(90deg);
+        border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    &:active {
+        transform: rotate(90deg) scale(0.95);
+    }
+}
+
+.intro-video {
+    width: 100%;
+    height: auto;
+    display: block;
+    max-height: 80vh;
+    background: #000000;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
 // 自定义 Prompts 样式（暗色主题）
 .custom-prompts {
     margin-top: 16px;
@@ -749,6 +886,23 @@ export default defineComponent({
         .prompt-image {
             height: 140px;
         }
+    }
+
+    .video-container {
+        width: 95%;
+        border-radius: 12px;
+    }
+
+    .close-button {
+        width: 36px;
+        height: 36px;
+        top: 12px;
+        right: 12px;
+        font-size: 18px;
+    }
+
+    .intro-video {
+        max-height: 70vh;
     }
 }
 </style>

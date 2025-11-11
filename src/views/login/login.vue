@@ -11,11 +11,11 @@
                     <!-- <div class="mb-2" style="font-weight: 700">Usename</div> -->
                     <v-text-field
                         v-model="state.username"
-                        label="Username"
+                        label="账号"
                         density="comfortable"
                         variant="outlined"
                         clearable
-                        :rules="[(firstName: any) => !!firstName || 'required']"
+                        :rules="[(firstName: any) => !!firstName || '请输入您的账号']"
                     ></v-text-field>
                 </div>
                 <div class="my-4">
@@ -23,11 +23,11 @@
                     <v-text-field
                         v-model="state.password"
                         type="password"
-                        label="Password"
+                        label="密码"
                         density="comfortable"
                         variant="outlined"
                         clearable
-                        :rules="[(firstName: any) => !!firstName || 'required']"
+                        :rules="[(firstName: any) => !!firstName || '请输入您的密码']"
                     ></v-text-field>
                 </div>
                 <!-- <div class="my-4">
@@ -54,7 +54,13 @@
                     </div>
                 </div> -->
                 <div class="my-6">
-                    <v-btn :loading="loading" color="primary" block size="large" @click="onSubmit">
+                    <v-btn
+                        :loading="loading"
+                        color="primary"
+                        block
+                        size="large"
+                        @click="onSubmit"
+                    >
                         登录
                     </v-btn>
                 </div>
@@ -63,14 +69,14 @@
     </div>
 </template>
 <script lang="ts" setup>
-import { ApiUser } from '@/api/user';
-import logo from '@/assets/admin-logo.png';
-import router, { syncRouter } from '@/router';
-import { reactive, shallowRef } from 'vue';
+import { ApiUser } from "@/api/user";
+import logo from "@/assets/admin-logo.png";
+import router, { syncRouter } from "@/router";
+import { reactive, shallowRef } from "vue";
 
 const state = reactive({
-    username: 'test',
-    password: 'test123456',
+    username: "",
+    password: "",
     // captcha: '',
     isQuick: true,
 });
@@ -95,7 +101,7 @@ const onSubmit = async () => {
         loading.value = false;
     } catch (err) {
         loading.value = false;
-        console.error('登录失败:', err);
+        console.error("登录失败:", err);
     }
 };
 </script>
