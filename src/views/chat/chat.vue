@@ -266,9 +266,15 @@ const sendMessage = async () => {
     ChatAPI.analyzeStream(
         { query },
         (message, content) => {
-            if (content) {
+            if (/[─]{20,}/.test(content)) {
+                content = '─────────────────────────────────────'
+            }
+            if (/[═]{20,}/.test(content)) {
+                content = '═════════════════════════════════════'
+            }
+            if (content || content === '') {
                 typewriterQueue = typewriterQueue.then(() =>
-                    typeText(aiMessageIndex, content, 15)
+                    typeText(aiMessageIndex, content+'\n', 15)
                 );
             }
 
