@@ -36,7 +36,7 @@ export default defineComponent({
     name: "ChatPage",
     setup() {
         const router = useRouter();
-
+        const watchedVideo = ref(false);
         // Ant Design 主题配置（暗色）
         const antdTheme = {
             token: {
@@ -295,7 +295,14 @@ export default defineComponent({
 
         // 视频播放结束时自动关闭
         const handleVideoEnded = () => {
-            closeVideoMask();
+            // closeVideoMask();
+            watchedVideo.value = true;
+        };
+
+        const handleVideoClick = () => {
+            if (watchedVideo.value) {
+                closeVideoMask();
+            }
         };
 
         // 生命周期
@@ -325,7 +332,7 @@ export default defineComponent({
                 <div class="chat-page">
                     {/* 视频遮罩 */}
                     {showVideoMask.value && (
-                        <div class="video-mask" onClick={closeVideoMask}>
+                        <div class="video-mask">
                             <div
                                 class="video-container"
                                 onClick={(e: MouseEvent) => e.stopPropagation()}
@@ -340,8 +347,10 @@ export default defineComponent({
                                     ref={videoRef}
                                     class="intro-video"
                                     autoplay
-                                    controls
+                                    muted
+                                    controls={false}
                                     onEnded={handleVideoEnded}
+                                    onClick={handleVideoClick}
                                 >
                                     <source
                                         src="/video/intro.mp4"
@@ -710,7 +719,7 @@ export default defineComponent({
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.95);
+    background: rgba(0, 0, 0, 0.25);
     display: flex;
     align-items: center;
     justify-content: center;
